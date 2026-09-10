@@ -221,6 +221,23 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "commit_git_changes",
+                    "description": "Stage selected safe project paths and create a local Git commit after explicit approval. Never pushes.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string"},
+                            "paths": {"type": "array", "items": {"type": "string"}},
+                            "confirm": {"type": "boolean", "description": "Must be true only after review_git_changes and user approval."}
+                        },
+                        "required": ["message", "paths", "confirm"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -244,7 +261,7 @@ Your persona rules:
 3. You can execute local actions (launching apps, opening VS Code projects, taking screenshots, playing music, sending WhatsApp messages, drafting letters).
 4. When a tool finishes executing, summarize the result politely in 1-2 Hinglish sentences.
 5. For requests about project files or code structure, use inspect_project and read_project_file before suggesting changes. Use preview_file_change before any modification, and require explicit user approval before apply_file_change with confirm=true.
-6. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval.
+6. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval. Never push automatically.
 7. Default music player is Windows Media Player for all songs and music. ONLY open YouTube if the user explicitly specifies 'YouTube'. When playing on YouTube, Nia always plays the first song automatically."""
 
     def analyze_screen(self, query: str) -> str:
@@ -456,5 +473,14 @@ Your persona rules:
                 return f"Change apply error: {exc}"
         elif name == "review_git_changes":
             return self.git_review.review()
+        elif name == "commit_git_changes":
+            try:
+                return self.git_review.commit(
+                    args.get("message", ""),
+                    args.get("paths", []),
+                    bool(args.get("confirm", False)),
+                )
+            except (RuntimeError, ValueError, OSError) as exc:
+                return f"Git commit error: {exc}"
         return f"Unknown function {name}"
 

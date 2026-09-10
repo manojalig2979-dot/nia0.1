@@ -51,3 +51,30 @@ class GitReview:
             f"Diff summary:\n{diff_stat}\n\n"
             f"Unstaged diff:\n{diff}"
         )
+
+    def commit(self, message: str, paths: list[str], confirm: bool = False) -> str:
+        """Stage selected safe paths and commit them after explicit confirmation."""
+        if not confirm:
+            raise ValueError("Set confirm=true only after reviewing Git changes.")
+        if not message.strip():
+            raise ValueError("Commit message must not be empty.")
+        if not paths:
+            raise ValueError("Provide at least one project-relative path to stage.")
+
+        blocked_fragments = ("config.json", ".env", "nia_browser_profile", ".nia_backups")
+        safe_paths = []
+        for path_text in paths:
+            path = Path(path_text)
+            if path.is_absolute() or ".." in path.parts:
+                raise ValueError(f"Path must be project-relative: {path_text}")
+            if any(fragment in path.as_posix() for fragment in blocked_fragments):
+                raise ValueError(f"Sensitive path cannot be committed: {path_text}")
+            safe_paths.append(path.as_posix())
+
+        self._run("add", "--", *safe_paths)
+        try:
+            commit_result = self._run("commit", "-m", message.strip()).strip()
+        except RuntimeError:
+            self._run("reset", "HEAD", "--", *safe_paths)
+            raise
+        return f"Commit created successfully. Push was not performed.\n{commit_result}"
