@@ -1,11 +1,13 @@
 import json
 import os
+import subprocess
 import litellm
 from desktop_tools import DesktopTools
 from browser_tools import BrowserTools
 from project_indexer import ProjectIndexer
 from code_workspace import CodeWorkspace
 from git_review import GitReview
+from project_validator import ProjectValidator
 
 class NiaAgentOrchestrator:
     def __init__(self, config: dict):
@@ -24,6 +26,7 @@ class NiaAgentOrchestrator:
         self.project_indexer = ProjectIndexer(config["system_paths"]["projects_dir"])
         self.code_workspace = CodeWorkspace(config["system_paths"]["projects_dir"])
         self.git_review = GitReview(config["system_paths"]["projects_dir"])
+        self.project_validator = ProjectValidator(config["system_paths"]["projects_dir"])
         
         from memory_manager import MemoryManager
         self.memory = MemoryManager(os.path.join(os.path.dirname(__file__), "memory_bank.json"))
@@ -238,6 +241,18 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "validate_project",
+                    "description": "Run bounded project validation checks, currently Python compilation, without changing Git state.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -261,8 +276,9 @@ Your persona rules:
 3. You can execute local actions (launching apps, opening VS Code projects, taking screenshots, playing music, sending WhatsApp messages, drafting letters).
 4. When a tool finishes executing, summarize the result politely in 1-2 Hinglish sentences.
 5. For requests about project files or code structure, use inspect_project and read_project_file before suggesting changes. Use preview_file_change before any modification, and require explicit user approval before apply_file_change with confirm=true.
-6. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval. Never push automatically.
-7. Default music player is Windows Media Player for all songs and music. ONLY open YouTube if the user explicitly specifies 'YouTube'. When playing on YouTube, Nia always plays the first song automatically."""
+6. After applying code changes, use validate_project before reviewing or committing them.
+7. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval. Never push automatically.
+8. Default music player is Windows Media Player for all songs and music. ONLY open YouTube if the user explicitly specifies 'YouTube'. When playing on YouTube, Nia always plays the first song automatically."""
 
     def analyze_screen(self, query: str) -> str:
         """Takes a screenshot and sends it to a vision-capable LLM to answer the user's query."""
@@ -482,5 +498,10 @@ Your persona rules:
                 )
             except (RuntimeError, ValueError, OSError) as exc:
                 return f"Git commit error: {exc}"
+        elif name == "validate_project":
+            try:
+                return self.project_validator.validate()
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                return f"Project validation error: {exc}"
         return f"Unknown function {name}"
 
