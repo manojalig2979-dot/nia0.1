@@ -1156,7 +1156,7 @@ class SettingsView(QWidget):
             e.setStyleSheet(f"QLineEdit {{ background: rgba(10, 18, 50, 180); color: {C_TEXT}; border: 1px solid rgba(61, 142, 248, 0.4); border-radius: 8px; padding: 0 10px; }}")
             return e
 
-        self.edit_llm_model = mk_edit(self.config.get("llm_settings", {}).get("model", "gemini/gemini-2.0-flash"))
+        self.edit_llm_model = mk_edit(self.config.get("llm_settings", {}).get("model", "gemini/gemini-3.6-flash"))
         self.edit_gemini_key = mk_edit(self.config.get("api_keys", {}).get("gemini_api_key", ""), True)
         self.edit_openai_key = mk_edit(self.config.get("api_keys", {}).get("openai_api_key", ""), True)
         self.edit_tts_voice = mk_edit(self.config.get("voice_settings", {}).get("tts_voice", "hi-IN-SwaraNeural"))

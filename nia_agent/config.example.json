@@ -18,7 +18,7 @@
         "whisper_model_size": "base"
     },
     "llm_settings": {
-        "model": "ollama/llama3.2",
+        "model": "gemini/gemini-3.6-flash",
         "base_url": "http://127.0.0.1:11434"
     }
 }

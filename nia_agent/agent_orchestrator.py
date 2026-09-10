@@ -276,13 +276,15 @@ Your persona rules:
             
             # Use gemini flash or a vision-capable model
             # Note: We hardcode gemini flash here or fallback to openai because ollama vision support can be tricky via LiteLLM without a specific model like llava.
-            model_to_use = self.config.get("llm_settings", {}).get("vision_model", "gemini/gemini-2.0-flash")
+            model_to_use = self.config.get("llm_settings", {}).get("vision_model", "gemini/gemini-3.6-flash")
+            completion_options = {"timeout": 30}
+            if model_to_use.startswith("ollama/"):
+                completion_options["api_base"] = self.config.get("llm_settings", {}).get("base_url")
             
             response = litellm.completion(
                 model=model_to_use,
                 messages=messages,
-                api_base=self.config.get("llm_settings", {}).get("base_url"),
-                timeout=30
+                **completion_options
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -295,7 +297,10 @@ Your persona rules:
         ]
         
         # Read configured model
-        llm_model = self.config.get("llm_settings", {}).get("model", "gemini/gemini-2.0-flash")
+        llm_model = self.config.get("llm_settings", {}).get("model", "gemini/gemini-3.6-flash")
+        completion_options = {"timeout": 12}
+        if llm_model.startswith("ollama/"):
+            completion_options["api_base"] = self.config.get("llm_settings", {}).get("base_url")
         
         try:
             response = litellm.completion(
@@ -303,8 +308,7 @@ Your persona rules:
                 messages=messages,
                 tools=self.tools,
                 tool_choice="auto",
-                api_base=self.config.get("llm_settings", {}).get("base_url"),
-                timeout=12
+                **completion_options
             )
         except Exception as e:
             print(f"[Nia LLM Fallback Triggered using model '{llm_model}']: {e}")
@@ -331,8 +335,7 @@ Your persona rules:
                         choice,
                         {"role": "tool", "name": fn_name, "content": " | ".join(tool_outputs), "tool_call_id": tool_call.id}
                     ],
-                    api_base=self.config.get("llm_settings", {}).get("base_url"),
-                    timeout=12
+                    **completion_options
                 )
                 return follow_up.choices[0].message.content
             except Exception:
