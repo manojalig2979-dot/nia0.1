@@ -56,6 +56,18 @@ class CodeWorkspace:
         )
         return "".join(diff) or "No changes proposed."
 
+    def preview_multi_change(self, changes: list[dict]) -> str:
+        if not changes:
+            raise ValueError("Provide at least one file change.")
+
+        previews = []
+        for change in changes:
+            relative_path = change.get("relative_path", "")
+            old_text = change.get("old_text", "")
+            new_text = change.get("new_text", "")
+            previews.append(self.preview_change(relative_path, old_text, new_text))
+        return "\n".join(previews)
+
     def apply_change(
         self,
         relative_path: str,
@@ -101,3 +113,59 @@ class CodeWorkspace:
             tofile=relative_path,
         )
         return f"Applied change to {relative_path}. Backup: {backup_path.relative_to(self.root)}\n" + "".join(diff)
+
+    def apply_multi_change(self, changes: list[dict], confirm: bool = False) -> str:
+        """Apply a validated multi-file plan with backups and rollback on failure."""
+        if not confirm:
+            raise ValueError("Set confirm=true only after reviewing preview_multi_file_change.")
+        if not changes:
+            raise ValueError("Provide at least one file change.")
+
+        prepared = []
+        seen_paths = set()
+        for change in changes:
+            relative_path = change.get("relative_path", "")
+            if relative_path in seen_paths:
+                raise ValueError(f"File appears more than once: {relative_path}")
+            seen_paths.add(relative_path)
+            path = self._resolve_file(relative_path)
+            old_text = change.get("old_text", "")
+            new_text = change.get("new_text", "")
+            current_text = self.read_file(relative_path)
+            occurrences = current_text.count(old_text)
+            if not old_text or occurrences == 0:
+                raise ValueError(f"old_text was not found in {relative_path}; the plan may be stale.")
+            if occurrences > 1:
+                raise ValueError(f"old_text occurs more than once in {relative_path}.")
+            prepared.append((relative_path, path, current_text, current_text.replace(old_text, new_text, 1)))
+
+        backup_directory = self.root / ".nia_backups"
+        backup_directory.mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        backups = []
+        written = []
+        try:
+            for index, (relative_path, path, current_text, proposed_text) in enumerate(prepared):
+                backup_path = backup_directory / f"{path.name}.{timestamp}_{index}.bak"
+                shutil.copy2(path, backup_path)
+                backups.append((path, backup_path))
+                with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as temporary_file:
+                    temporary_file.write(proposed_text)
+                    temporary_path = Path(temporary_file.name)
+                temporary_path.replace(path)
+                written.append(path)
+        except Exception:
+            for path, backup_path in backups:
+                if path in written:
+                    shutil.copy2(backup_path, path)
+            raise
+
+        diffs = []
+        for relative_path, path, current_text, proposed_text in prepared:
+            diffs.append("".join(difflib.unified_diff(
+                current_text.splitlines(keepends=True),
+                proposed_text.splitlines(keepends=True),
+                fromfile=relative_path,
+                tofile=relative_path,
+            )))
+        return f"Applied {len(prepared)} file changes. Backups stored in .nia_backups.\n" + "\n".join(diffs)

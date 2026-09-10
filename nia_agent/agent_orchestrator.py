@@ -241,6 +241,37 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "preview_multi_file_change",
+                    "description": "Generate one unified diff for exact replacements across multiple project files without changing them.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "changes": {"type": "array", "items": {"type": "object"}}
+                        },
+                        "required": ["changes"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "apply_multi_file_change",
+                    "description": "Apply an exact reviewed multi-file replacement plan after explicit confirmation. Creates backups and never commits.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "changes": {"type": "array", "items": {"type": "object"}},
+                            "confirm": {"type": "boolean", "description": "Must be true only after the preview was reviewed and approved."}
+                        },
+                        "required": ["changes", "confirm"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "validate_project",
                     "description": "Run bounded project validation checks, currently Python compilation, without changing Git state.",
                     "parameters": {
@@ -275,7 +306,7 @@ Your persona rules:
 2. Your voice engine is Microsoft Swara Neural, so write phonetically natural Hinglish/Hindi text without robotic tone.
 3. You can execute local actions (launching apps, opening VS Code projects, taking screenshots, playing music, sending WhatsApp messages, drafting letters).
 4. When a tool finishes executing, summarize the result politely in 1-2 Hinglish sentences.
-5. For requests about project files or code structure, use inspect_project and read_project_file before suggesting changes. Use preview_file_change before any modification, and require explicit user approval before apply_file_change with confirm=true.
+5. For requests about project files or code structure, use inspect_project and read_project_file before suggesting changes. Use preview_file_change or preview_multi_file_change before any modification, and require explicit user approval before apply_file_change or apply_multi_file_change with confirm=true.
 6. After applying code changes, use validate_project before reviewing or committing them.
 7. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval. Never push automatically.
 8. Default music player is Windows Media Player for all songs and music. ONLY open YouTube if the user explicitly specifies 'YouTube'. When playing on YouTube, Nia always plays the first song automatically."""
@@ -503,5 +534,18 @@ Your persona rules:
                 return self.project_validator.validate()
             except (OSError, subprocess.TimeoutExpired) as exc:
                 return f"Project validation error: {exc}"
+        elif name == "preview_multi_file_change":
+            try:
+                return self.code_workspace.preview_multi_change(args.get("changes", []))
+            except (FileNotFoundError, ValueError) as exc:
+                return f"Multi-file preview error: {exc}"
+        elif name == "apply_multi_file_change":
+            try:
+                return self.code_workspace.apply_multi_change(
+                    args.get("changes", []),
+                    bool(args.get("confirm", False)),
+                )
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                return f"Multi-file apply error: {exc}"
         return f"Unknown function {name}"
 
