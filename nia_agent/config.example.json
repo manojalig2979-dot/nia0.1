@@ -1,0 +1,24 @@
+{
+    "user_profile": {
+        "name": "Your Name",
+        "whatsapp_number": "+countrycode-number",
+        "language_mode": "hinglish",
+        "wake_word": "nia"
+    },
+    "system_paths": {
+        "projects_dir": "C:\\Path\\To\\Your\\Projects",
+        "whatsapp_session_dir": "nia_browser_profile"
+    },
+    "api_keys": {
+        "gemini_api_key": "",
+        "openai_api_key": ""
+    },
+    "voice_settings": {
+        "tts_voice": "hi-IN-SwaraNeural",
+        "whisper_model_size": "base"
+    },
+    "llm_settings": {
+        "model": "ollama/llama3.2",
+        "base_url": "http://127.0.0.1:11434"
+    }
+}

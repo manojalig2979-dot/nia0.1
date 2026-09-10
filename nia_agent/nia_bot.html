@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nia 3D Bot</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 280px; height: 360px;
+    background: transparent;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 280px !important;
+    height: 360px !important;
+  }
+</style>
+</head>
+<body>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const MODEL_DIRECTORY = './3d-agent/';
+const DEFAULT_MODEL = 'michi_bot.glb';
+let importedModel = null;
+let importedMixer = null;
+let importedActions = {};
+let importedAction = null;
+
+// ═══════════════════════════════════════════════
+//  State management — called from Python via JS
+// ═══════════════════════════════════════════════
+let currentState = 'idle';
+let stateTime = 0;
+
+window.setState = function(state) {
+  currentState = state;
+  stateTime = 0;
+  setImportedModelState(state);
+};
+
+// ═══════════════════════════════════════════════
+//  Scene Setup  — fixed to match widget (280 × 360)
+// ═══════════════════════════════════════════════
+const W = 280, H = 360;  // must match setFixedSize() in bot3d_widget.py
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true,
+  powerPreference: 'high-performance'
+});
+renderer.setSize(W, H);
+renderer.setPixelRatio(1);       // lock to 1 — avoids HiDPI 2× clipping
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = null; // transparent
+
+// Load a user-provided GLB while retaining the procedural avatar as fallback.
+const modelLoader = new GLTFLoader();
+window.setAvatarModel = function(modelFile) {
+  const modelUrl = MODEL_DIRECTORY + encodeURIComponent(modelFile);
+  modelLoader.load(modelUrl, (gltf) => {
+    if (importedModel) {
+      scene.remove(importedModel);
+      importedModel.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => material.dispose());
+        }
+      });
+    }
+    importedMixer = null;
+    importedActions = {};
+    importedAction = null;
+
+  importedModel = gltf.scene;
+  importedModel.traverse((object) => {
+    if (object.isMesh) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+    }
+  });
+
+  const bounds = new THREE.Box3().setFromObject(importedModel);
+  const size = bounds.getSize(new THREE.Vector3());
+  const center = bounds.getCenter(new THREE.Vector3());
+  const maxSize = Math.max(size.x, size.y, size.z) || 1;
+  const targetHeight = 2.65;
+  const scale = targetHeight / maxSize;
+
+  importedModel.scale.setScalar(scale);
+  importedModel.position.set(
+    -center.x * scale,
+    (-center.y * scale) - 0.05,
+    -center.z * scale
+  );
+  scene.add(importedModel);
+  head.visible = false;
+  orbitGroup.visible = false;
+  particles.visible = false;
+  hudGroup.visible = false;
+  statusPlane.visible = false;
+
+  if (gltf.animations.length) {
+    importedMixer = new THREE.AnimationMixer(importedModel);
+    gltf.animations.forEach((clip) => {
+      const key = clip.name.toLowerCase();
+      importedActions[key] = importedMixer.clipAction(clip);
+    });
+    setImportedModelState(currentState);
+  }
+  }, undefined, (error) => {
+    console.warn('[Nia 3D] Could not load ' + modelFile + '; keeping the current avatar.', error);
+  });
+};
+
+window.setAvatarModel(DEFAULT_MODEL);
+
+function setImportedModelState(state) {
+  if (!importedMixer) return;
+
+  const keywords = state === 'speaking'
+    ? ['talk', 'speak']
+    : state === 'working'
+      ? ['work', 'active', 'run']
+      : ['idle', 'breath', 'default'];
+  const nextAction = Object.keys(importedActions).find((name) =>
+    keywords.some((keyword) => name.includes(keyword))
+  );
+  const next = nextAction ? importedActions[nextAction] : Object.values(importedActions)[0];
+  if (!next || next === importedAction) return;
+
+  if (importedAction) importedAction.fadeOut(0.2);
+  importedAction = next;
+  importedAction.reset().fadeIn(0.2).play();
+}
+
+// Camera pulled back to z=5.0, FOV=55° so the full face is always visible
+const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 100);
+camera.position.set(0, 0.12, 5.0);
+camera.lookAt(0, 0.12, 0);
+
+// ═══════════════════════════════════════════════
+//  Lighting
+// ═══════════════════════════════════════════════
+const ambientLight = new THREE.AmbientLight(0x0a0f2e, 2.5);
+scene.add(ambientLight);
+
+// Key light — centred directly above-front for perfectly symmetric lighting
+const keyLight = new THREE.DirectionalLight(0x00d4ff, 3.2);
+keyLight.position.set(0, 2.5, 4);
+keyLight.castShadow = true;
+scene.add(keyLight);
+
+// Fill lights — symmetric left & right so both sides are equally lit
+const fillLight = new THREE.DirectionalLight(0x3d8ef8, 1.6);
+fillLight.position.set(-2.5, 1, 2);
+scene.add(fillLight);
+
+const fillLightR = new THREE.DirectionalLight(0x3d8ef8, 1.6);
+fillLightR.position.set(2.5, 1, 2);
+scene.add(fillLightR);
+
+// Rim light (purple, behind)
+const rimLight = new THREE.DirectionalLight(0x9b59b6, 2.0);
+rimLight.position.set(0, 2, -4);
+scene.add(rimLight);
+
+// Under glow
+const underLight = new THREE.PointLight(0x00d4ff, 1.5, 8);
+underLight.position.set(0, -2.5, 1);
+scene.add(underLight);
+
+// Dynamic state lights (symmetric: one left, one right)
+const stateLight1 = new THREE.PointLight(0x00d4ff, 0, 6);
+stateLight1.position.set(-1.5, 1, 2);
+scene.add(stateLight1);
+
+const stateLight2 = new THREE.PointLight(0x9b59b6, 0, 6);
+stateLight2.position.set(1.5, 0.5, 2);
+scene.add(stateLight2);
+
+// ═══════════════════════════════════════════════
+//  Material Helpers
+// ═══════════════════════════════════════════════
+const metalMat = (color, emissive=0x000000, rough=0.22, metal=0.88) =>
+  new THREE.MeshStandardMaterial({
+    color, emissive, roughness: rough, metalness: metal
+  });
+
+const glassMat = (color, opacity=0.18) =>
+  new THREE.MeshPhysicalMaterial({
+    color, transparent: true, opacity,
+    roughness: 0.05, metalness: 0.0,
+    transmission: 0.7, thickness: 0.5
+  });
+
+// ═══════════════════════════════════════════════
+//  Head Group
+// ═══════════════════════════════════════════════
+const head = new THREE.Group();
+scene.add(head);
+
+// ── 1. Skull / Base Head ──────────────────────
+const skullGeo = new THREE.SphereGeometry(1.0, 64, 64);
+// Squash slightly for feminine proportions
+skullGeo.scale(0.92, 1.05, 0.88);
+const skullMat = new THREE.MeshStandardMaterial({
+  color: 0x0d1535,
+  emissive: 0x050a1a,
+  roughness: 0.35,
+  metalness: 0.72,
+  envMapIntensity: 1.2
+});
+const skull = new THREE.Mesh(skullGeo, skullMat);
+head.add(skull);
+
+// ── 2. Face Panel removed — was a half-sphere with rotation
+// that occluded the left eye/mouth. Skull base is used directly.
+// The skull material receives symmetric lighting for an even look.
+
+// ── 3. Forehead ridge / crown plate ──────────
+const crownGeo = new THREE.TorusGeometry(0.72, 0.04, 16, 80, Math.PI);
+const crownMat = metalMat(0x1a2a5a, 0x002244, 0.18, 0.92);
+const crown = new THREE.Mesh(crownGeo, crownMat);
+crown.rotation.x = -0.45;
+crown.position.set(0, 0.72, 0.22);
+head.add(crown);
+
+// Crown accent stripe (cyan)
+const crownAccentMat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff,
+  emissive: 0x00a0cc,
+  roughness: 0.1,
+  metalness: 0.9,
+  emissiveIntensity: 1.2
+});
+const crownAccent = new THREE.Mesh(
+  new THREE.TorusGeometry(0.72, 0.015, 8, 80, Math.PI),
+  crownAccentMat
+);
+crownAccent.rotation.x = -0.45;
+crownAccent.position.set(0, 0.72, 0.22);
+head.add(crownAccent);
+
+// ── 4. Side Panel Plates ──────────────────────
+[-1, 1].forEach(side => {
+  // Cheek plate
+  const cheekGeo = new THREE.BoxGeometry(0.08, 0.52, 0.38);
+  const cheekMat = metalMat(0x0e1840, 0x050e28, 0.2, 0.9);
+  const cheek = new THREE.Mesh(cheekGeo, cheekMat);
+  cheek.position.set(side * 0.87, 0.02, 0.05);
+  cheek.rotation.y = side * 0.38;
+  head.add(cheek);
+
+  // Cheek ridge line
+  const ridgeGeo = new THREE.BoxGeometry(0.015, 0.48, 0.012);
+  const ridgeMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x009fcc,
+    roughness: 0.1, metalness: 0.9, emissiveIntensity: 0.9
+  });
+  const ridge = new THREE.Mesh(ridgeGeo, ridgeMat);
+  ridge.position.set(side * 0.85, 0.02, 0.3);
+  head.add(ridge);
+
+  // Ear/temple tech piece
+  const templeGeo = new THREE.CylinderGeometry(0.1, 0.08, 0.12, 24);
+  const templeMat = metalMat(0x0a1028, 0x03070f, 0.22, 0.95);
+  const temple = new THREE.Mesh(templeGeo, templeMat);
+  temple.rotation.z = Math.PI / 2;
+  temple.position.set(side * 1.05, 0.18, -0.1);
+  head.add(temple);
+
+  // Temple ring accent
+  const tRingGeo = new THREE.TorusGeometry(0.1, 0.012, 12, 32);
+  const tRingMat = new THREE.MeshStandardMaterial({
+    color: 0x3d8ef8, emissive: 0x2060cc, roughness: 0.1, metalness: 0.9, emissiveIntensity: 1.0
+  });
+  const tRing = new THREE.Mesh(tRingGeo, tRingMat);
+  tRing.rotation.y = Math.PI / 2;
+  tRing.position.set(side * 1.12, 0.18, -0.1);
+  head.add(tRing);
+});
+
+// ── 5. Brow Ridge ─────────────────────────────
+const browGeo = new THREE.CylinderGeometry(0.015, 0.022, 1.1, 16);
+const browMat = metalMat(0x1a2860, 0x0a1a3a, 0.15, 0.9);
+const brow = new THREE.Mesh(browGeo, browMat);
+brow.rotation.z = Math.PI / 2;
+brow.position.set(0, 0.36, 0.82);
+head.add(brow);
+
+// Brow glow line
+const browGlowMat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff, emissive: 0x00b0ee, roughness: 0.05, metalness: 0.5, emissiveIntensity: 1.5
+});
+const browGlow = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.006, 0.006, 1.05, 8),
+  browGlowMat
+);
+browGlow.rotation.z = Math.PI / 2;
+browGlow.position.set(0, 0.36, 0.835);
+head.add(browGlow);
+
+// ── 6. EYES ───────────────────────────────────
+const eyeGroup = new THREE.Group();
+head.add(eyeGroup);
+
+const eyeMeshes = [];
+const eyeGlowMeshes = [];
+const eyePupilMeshes = [];
+const eyeIrisMeshes = [];
+
+[-0.30, 0.30].forEach((xPos, idx) => {
+  // Eye socket (dark recess)
+  const socketGeo = new THREE.SphereGeometry(0.145, 32, 32);
+  const socketMat = new THREE.MeshStandardMaterial({
+    color: 0x020408, roughness: 0.9, metalness: 0.1
+  });
+  const socket = new THREE.Mesh(socketGeo, socketMat);
+  socket.position.set(xPos, 0.22, 0.83);
+  socket.scale.z = 0.38;
+  eyeGroup.add(socket);
+
+  // Eye surround rim
+  const rimGeo = new THREE.TorusGeometry(0.148, 0.018, 16, 64);
+  const rimMat = metalMat(0x1a2a60, 0x0a1840, 0.18, 0.95);
+  const eyeRim = new THREE.Mesh(rimGeo, rimMat);
+  eyeRim.position.set(xPos, 0.22, 0.83);
+  eyeGroup.add(eyeRim);
+
+  // Iris (glowing)
+  const irisGeo = new THREE.CircleGeometry(0.108, 48);
+  const irisMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff,
+    emissive: 0x00a8e0,
+    roughness: 0.05,
+    metalness: 0.2,
+    emissiveIntensity: 2.2
+  });
+  const iris = new THREE.Mesh(irisGeo, irisMat);
+  iris.position.set(xPos, 0.22, 0.875);
+  eyeGroup.add(iris);
+  eyeIrisMeshes.push(iris);
+
+  // Pupil
+  const pupilGeo = new THREE.CircleGeometry(0.048, 32);
+  const pupilMat = new THREE.MeshStandardMaterial({
+    color: 0x001520, emissive: 0x000000, roughness: 1.0, metalness: 0
+  });
+  const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+  pupil.position.set(xPos, 0.22, 0.878);
+  eyeGroup.add(pupil);
+  eyePupilMeshes.push(pupil);
+
+  // Specular highlight
+  const specGeo = new THREE.CircleGeometry(0.022, 16);
+  const specMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const spec = new THREE.Mesh(specGeo, specMat);
+  spec.position.set(xPos - 0.032, 0.244, 0.88);
+  eyeGroup.add(spec);
+
+  // Outer glow ring
+  const glowRingGeo = new THREE.TorusGeometry(0.132, 0.008, 12, 48);
+  const glowRingMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff, emissive: 0x00c0ee,
+    roughness: 0.05, metalness: 0.5, emissiveIntensity: 2.5,
+    transparent: true, opacity: 0.85
+  });
+  const glowRing = new THREE.Mesh(glowRingGeo, glowRingMat);
+  glowRing.position.set(xPos, 0.22, 0.84);
+  eyeGroup.add(glowRing);
+  eyeGlowMeshes.push(glowRing);
+
+  // Eyelid (blink plane)
+  const lidGeo = new THREE.PlaneGeometry(0.31, 0.16);
+  const lidMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1535, roughness: 0.4, metalness: 0.6,
+    transparent: true, opacity: 0.0
+  });
+  const lid = new THREE.Mesh(lidGeo, lidMat);
+  lid.position.set(xPos, 0.22, 0.882);
+  eyeGroup.add(lid);
+  eyeMeshes.push(lid);
+});
+
+// ── 7. Nose bridge ───────────────────────────
+const noseGeo = new THREE.BoxGeometry(0.04, 0.22, 0.06);
+const noseMat = metalMat(0x0d1535, 0x040912, 0.3, 0.7);
+const nose = new THREE.Mesh(noseGeo, noseMat);
+nose.position.set(0, 0.02, 0.92);
+head.add(nose);
+
+// ── 8. MOUTH / LIP ASSEMBLY ───────────────────
+const mouthGroup = new THREE.Group();
+head.add(mouthGroup);
+
+// Upper lip base
+const upperLipGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.32, 12);
+const lipMat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff, emissive: 0x0090bb,
+  roughness: 0.12, metalness: 0.5, emissiveIntensity: 1.0
+});
+const upperLip = new THREE.Mesh(upperLipGeo, lipMat);
+upperLip.rotation.z = Math.PI / 2;
+upperLip.position.set(0, -0.24, 0.88);
+mouthGroup.add(upperLip);
+
+// Lower lip
+const lowerLipMat = new THREE.MeshStandardMaterial({
+  color: 0x3d8ef8, emissive: 0x1a4a99,
+  roughness: 0.15, metalness: 0.5, emissiveIntensity: 0.9
+});
+const lowerLip = new THREE.Mesh(upperLipGeo.clone(), lowerLipMat);
+lowerLip.rotation.z = Math.PI / 2;
+lowerLip.position.set(0, -0.285, 0.88);
+mouthGroup.add(lowerLip);
+
+// Mouth interior (opens during speaking)
+const mouthInteriorGeo = new THREE.BoxGeometry(0.28, 0.0, 0.06);
+const mouthInteriorMat = new THREE.MeshStandardMaterial({
+  color: 0x000510, emissive: 0x000205,
+  roughness: 1, metalness: 0,
+  transparent: true, opacity: 0.95
+});
+const mouthInterior = new THREE.Mesh(mouthInteriorGeo, mouthInteriorMat);
+mouthInterior.position.set(0, -0.262, 0.875);
+mouthGroup.add(mouthInterior);
+
+// Lip-sync bars (5 small bars inside mouth)
+const lipBars = [];
+for (let i = 0; i < 5; i++) {
+  const barGeo = new THREE.BoxGeometry(0.028, 0.001, 0.022);
+  const barMat = new THREE.MeshStandardMaterial({
+    color: 0x9b59b6, emissive: 0x7040aa,
+    roughness: 0.1, metalness: 0.5, emissiveIntensity: 2.0,
+    transparent: true, opacity: 0.0
+  });
+  const bar = new THREE.Mesh(barGeo, barMat);
+  bar.position.set(-0.1 + i * 0.05, -0.262, 0.875);
+  mouthGroup.add(bar);
+  lipBars.push(bar);
+}
+
+// ── 9. Chin plate ─────────────────────────────
+const chinGeo = new THREE.BoxGeometry(0.38, 0.08, 0.12);
+const chinMat = metalMat(0x0e1840, 0x050e22, 0.25, 0.88);
+const chin = new THREE.Mesh(chinGeo, chinMat);
+chin.position.set(0, -0.58, 0.62);
+head.add(chin);
+
+// ── 10. Neck / Collar ─────────────────────────
+const neckGeo = new THREE.CylinderGeometry(0.28, 0.38, 0.48, 32);
+const neckMat = metalMat(0x0a1228, 0x040810, 0.28, 0.85);
+const neck = new THREE.Mesh(neckGeo, neckMat);
+neck.position.set(0, -1.12, 0);
+head.add(neck);
+
+// Neck ring details
+[0.0, -0.15, -0.28].forEach((y, i) => {
+  const rGeo = new THREE.TorusGeometry(0.32 + i * 0.02, 0.012, 12, 48);
+  const rMat = new THREE.MeshStandardMaterial({
+    color: i === 1 ? 0x00d4ff : 0x3d8ef8,
+    emissive: i === 1 ? 0x00a0bb : 0x1a3a88,
+    roughness: 0.1, metalness: 0.9,
+    emissiveIntensity: i === 1 ? 1.4 : 0.8
+  });
+  const ring = new THREE.Mesh(rGeo, rMat);
+  ring.position.set(0, -0.9 + y, 0);
+  head.add(ring);
+});
+
+// ── 11. Shoulder collar piece ─────────────────
+const collarGeo = new THREE.CylinderGeometry(0.75, 0.65, 0.18, 48);
+const collarMat = metalMat(0x0c1530, 0x040a1e, 0.22, 0.9);
+const collar = new THREE.Mesh(collarGeo, collarMat);
+collar.position.set(0, -1.45, 0);
+head.add(collar);
+
+// Collar accent
+const collarAccentGeo = new THREE.TorusGeometry(0.71, 0.014, 12, 64);
+const collarAccentMat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff, emissive: 0x00a0cc,
+  roughness: 0.08, metalness: 0.9, emissiveIntensity: 1.6
+});
+const collarAccent = new THREE.Mesh(collarAccentGeo, collarAccentMat);
+collarAccent.position.set(0, -1.36, 0);
+head.add(collarAccent);
+
+// ── 12. Circuit pattern lines on head ─────────
+const circuitMat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff, emissive: 0x0090bb,
+  roughness: 0.1, metalness: 0.5, emissiveIntensity: 0.7,
+  transparent: true, opacity: 0.65
+});
+
+// Circuit patterns — symmetric on BOTH sides of forehead and both cheeks
+// Right forehead
+const c1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.008, 0.008), circuitMat.clone());
+c1.position.set(0.12, 0.55, 0.81);
+head.add(c1);
+const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.16, 0.008), circuitMat.clone());
+c2.position.set(0.23, 0.47, 0.80);
+head.add(c2);
+const c3 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.008, 0.008), circuitMat.clone());
+c3.position.set(0.17, 0.39, 0.80);
+head.add(c3);
+// Left forehead (mirror)
+const c1L = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.008, 0.008), circuitMat.clone());
+c1L.position.set(-0.12, 0.55, 0.81);
+head.add(c1L);
+const c2L = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.16, 0.008), circuitMat.clone());
+c2L.position.set(-0.23, 0.47, 0.80);
+head.add(c2L);
+const c3L = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.008, 0.008), circuitMat.clone());
+c3L.position.set(-0.17, 0.39, 0.80);
+head.add(c3L);
+// Right cheek circuit
+const c4 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.18, 0.008), circuitMat.clone());
+c4.position.set(0.62, 0.05, 0.62);
+head.add(c4);
+const c5 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.008, 0.008), circuitMat.clone());
+c5.position.set(0.56, -0.04, 0.62);
+head.add(c5);
+// Left cheek circuit (mirror)
+const c6 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.18, 0.008), circuitMat.clone());
+c6.position.set(-0.62, 0.05, 0.62);
+head.add(c6);
+const c7 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.008, 0.008), circuitMat.clone());
+c7.position.set(-0.56, -0.04, 0.62);
+head.add(c7);
+
+// ═══════════════════════════════════════════════
+//  SCAN LINE (holographic UI element)
+// ═══════════════════════════════════════════════
+const scanLineMat = new THREE.MeshBasicMaterial({
+  color: 0x00d4ff, transparent: true, opacity: 0.22, side: THREE.DoubleSide
+});
+const scanPlane = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.02), scanLineMat);
+head.add(scanPlane);
+
+// ═══════════════════════════════════════════════
+//  ORBIT RINGS
+// ═══════════════════════════════════════════════
+const orbitGroup = new THREE.Group();
+scene.add(orbitGroup);
+orbitGroup.position.set(0, -0.2, 0);
+
+const ring1Geo = new THREE.TorusGeometry(1.7, 0.012, 12, 120);
+const ring1Mat = new THREE.MeshStandardMaterial({
+  color: 0x00d4ff, emissive: 0x0080aa,
+  roughness: 0.1, metalness: 0.7, emissiveIntensity: 1.2,
+  transparent: true, opacity: 0.7
+});
+const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+ring1.rotation.x = Math.PI / 2 + 0.35;
+orbitGroup.add(ring1);
+
+const ring2Geo = new THREE.TorusGeometry(1.42, 0.010, 12, 100);
+const ring2Mat = new THREE.MeshStandardMaterial({
+  color: 0x9b59b6, emissive: 0x6030a0,
+  roughness: 0.1, metalness: 0.7, emissiveIntensity: 1.0,
+  transparent: true, opacity: 0.6
+});
+const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+ring2.rotation.x = Math.PI / 2 - 0.42;
+ring2.rotation.z = 0.2;
+orbitGroup.add(ring2);
+
+// Orbiting node dots
+const nodeMat1 = new THREE.MeshStandardMaterial({
+  color: 0x00ffff, emissive: 0x00ddee,
+  roughness: 0.1, metalness: 0.3, emissiveIntensity: 3.0
+});
+const node1 = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 16), nodeMat1);
+orbitGroup.add(node1);
+
+const nodeMat2 = new THREE.MeshStandardMaterial({
+  color: 0xcc88ff, emissive: 0xaa66ee,
+  roughness: 0.1, metalness: 0.3, emissiveIntensity: 3.0
+});
+const node2 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 16), nodeMat2);
+orbitGroup.add(node2);
+
+// ═══════════════════════════════════════════════
+//  PARTICLE AURA SYSTEM
+// ═══════════════════════════════════════════════
+const PARTICLE_COUNT = 280;
+const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+const particleSpeeds = [];
+const particleBasePos = [];
+
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.random() * Math.PI;
+  const r = 1.5 + Math.random() * 1.0;
+  const x = r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.cos(phi) * 0.7 - 0.2;
+  const z = r * Math.sin(phi) * Math.sin(theta);
+  particlePositions[i * 3]     = x;
+  particlePositions[i * 3 + 1] = y;
+  particlePositions[i * 3 + 2] = z;
+  particleBasePos.push({ x, y, z });
+  particleSpeeds.push({
+    theta: Math.random() * Math.PI * 2,
+    phi: Math.random() * Math.PI,
+    speed: 0.004 + Math.random() * 0.008,
+    amp: 0.06 + Math.random() * 0.1
+  });
+}
+
+const particleGeo = new THREE.BufferGeometry();
+particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+const particleMat = new THREE.PointsMaterial({
+  color: 0x00d4ff,
+  size: 0.022,
+  transparent: true,
+  opacity: 0.55,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// ═══════════════════════════════════════════════
+//  HUD elements (decorative corner brackets)
+// ═══════════════════════════════════════════════
+const hudMat = new THREE.LineBasicMaterial({
+  color: 0x00d4ff, transparent: true, opacity: 0.5
+});
+
+function makeCornerBracket(x, y, z, size, flipX, flipY) {
+  const pts = [
+    new THREE.Vector3(x + flipX * size, y, z),
+    new THREE.Vector3(x, y, z),
+    new THREE.Vector3(x, y + flipY * size, z),
+  ];
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  return new THREE.Line(geo, hudMat.clone());
+}
+
+// HUD brackets around the face
+const hudGroup = new THREE.Group();
+[[-0.82, 0.72, 0.82, 0.28, 1, -1],
+ [ 0.82, 0.72, 0.82, 0.28, -1, -1],
+ [-0.82,-0.72, 0.82, 0.28, 1,  1],
+ [ 0.82,-0.72, 0.82, 0.28, -1, 1]].forEach(([x,y,z,s,fx,fy]) => {
+  hudGroup.add(makeCornerBracket(x, y, z, s, fx, fy));
+});
+scene.add(hudGroup);
+
+// ═══════════════════════════════════════════════
+//  Status text glow plane (bottom)
+// ═══════════════════════════════════════════════
+const statusGeo = new THREE.PlaneGeometry(2.0, 0.2);
+const statusMat = new THREE.MeshBasicMaterial({
+  color: 0x3d8ef8, transparent: true, opacity: 0.12
+});
+const statusPlane = new THREE.Mesh(statusGeo, statusMat);
+statusPlane.position.set(0, -1.82, 0.2);
+scene.add(statusPlane);
+
+// ═══════════════════════════════════════════════
+//  Animation helpers
+// ═══════════════════════════════════════════════
+const clock = new THREE.Clock();
+let blinkTimer = 0;
+let blinkPhase = 0;  // 0=open, 1=closed
+let blinkDir = 0;
+let blinkInterval = 3.5 + Math.random() * 2.5;
+
+let mouthOpen = 0;      // 0..1
+let mouthTarget = 0;
+
+let nodeAngle1 = 0;
+let nodeAngle2 = Math.PI;
+
+let scanY = 0;
+let scanDir = 1;
+
+let breathPhase = 0;
+let swayPhase = 0;
+
+// ─── Easing ───────────────────────────────────
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOut = t => 1 - Math.pow(1 - t, 2.5);
+
+// ═══════════════════════════════════════════════
+//  MAIN ANIMATION LOOP
+// ═══════════════════════════════════════════════
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  stateTime += dt;
+  if (importedMixer) importedMixer.update(dt);
+
+  // ── State-based speeds ──────────────────────
+  const isWorking  = currentState === 'working';
+  const isSpeaking = currentState === 'speaking';
+  const speedMul   = isWorking ? 2.8 : (isSpeaking ? 1.6 : 1.0);
+
+  // ── Breath / idle bob ───────────────────────
+  breathPhase += dt * 0.9 * speedMul;
+  swayPhase   += dt * 0.4;
+  const breathBob = Math.sin(breathPhase) * 0.028;
+  const swayX     = Math.sin(swayPhase) * 0.018;
+
+  head.position.y = breathBob;
+  head.position.x = swayX;
+  head.rotation.y = Math.sin(swayPhase * 0.6) * 0.03;
+
+  // ── Blink ───────────────────────────────────
+  blinkTimer += dt;
+  if (blinkDir === 0 && blinkTimer >= blinkInterval) {
+    blinkDir = 1;
+    blinkTimer = 0;
+    blinkInterval = 3.0 + Math.random() * 3.0;
+  }
+  if (blinkDir !== 0) {
+    blinkPhase += blinkDir * dt * 9.0;
+    if (blinkPhase >= 1.0) { blinkPhase = 1.0; blinkDir = -1; }
+    if (blinkPhase <= 0.0) { blinkPhase = 0.0; blinkDir = 0; }
+  }
+  // Apply blink to lids
+  eyeMeshes.forEach(lid => {
+    lid.material.opacity = blinkPhase * 0.98;
+    lid.scale.y = 1.0 + blinkPhase * 2.5;
+  });
+
+  // ── Eye glow pulse ──────────────────────────
+  const eyeGlowBase   = isSpeaking ? 2.8 : (isWorking ? 3.5 : 1.8);
+  const eyeGlowPulse  = Math.sin(stateTime * (isWorking ? 6 : 3)) * 0.6;
+  eyeIrisMeshes.forEach(m => {
+    m.material.emissiveIntensity = eyeGlowBase + eyeGlowPulse;
+  });
+  eyeGlowMeshes.forEach(m => {
+    m.material.emissiveIntensity = eyeGlowBase + eyeGlowPulse * 0.8;
+    m.scale.setScalar(1.0 + Math.sin(stateTime * 3) * 0.06);
+  });
+
+  // Eye color: cyan (idle/working) vs purple (speaking)
+  const eyeR = isSpeaking ? 0xcc : 0x00;
+  const eyeG = isSpeaking ? 0x88 : 0xd4;
+  const eyeB = isSpeaking ? 0xff : 0xff;
+  const eyeColor = new THREE.Color(eyeR / 255, eyeG / 255, eyeB / 255);
+  eyeIrisMeshes.forEach(m => m.material.color.lerp(eyeColor, 0.08));
+  eyeGlowMeshes.forEach(m => m.material.color.lerp(eyeColor, 0.08));
+
+  // ── Mouth animation ──────────────────────────
+  if (isSpeaking) {
+    // Simulate talking: sinusoidal mouth open
+    mouthTarget = 0.4 + 0.55 * Math.abs(Math.sin(stateTime * 7.5 + Math.random() * 0.4));
+  } else {
+    mouthTarget = 0.0;
+  }
+  mouthOpen = lerp(mouthOpen, mouthTarget, 0.18);
+
+  // Mouth interior height scales with open amount
+  mouthInterior.scale.y = Math.max(0.001, mouthOpen * 14);
+  mouthInterior.position.y = -0.262 - mouthOpen * 0.015;
+
+  // Lip bar animation (lip-sync bars)
+  lipBars.forEach((bar, i) => {
+    bar.material.opacity = isSpeaking ? 0.9 : 0.0;
+    if (isSpeaking) {
+      const h = 0.02 + mouthOpen * 0.08 * Math.abs(Math.sin(stateTime * (5 + i) + i * 0.9));
+      bar.scale.y = Math.max(1, h * 200);
+      bar.position.y = -0.262 + (h / 2);
+    }
+  });
+
+  // Upper lip moves up slightly when speaking
+  upperLip.position.y = lerp(upperLip.position.y, -0.24 - mouthOpen * 0.022, 0.2);
+  lowerLip.position.y = lerp(lowerLip.position.y, -0.285 - mouthOpen * 0.022, 0.2);
+
+  // ── Scan line ───────────────────────────────
+  const scanSpeed = isWorking ? 0.9 : 0.35;
+  scanY += dt * scanSpeed * scanDir;
+  if (scanY > 1.1)  { scanDir = -1; }
+  if (scanY < -1.1) { scanDir = 1; }
+  scanPlane.position.set(0, scanY + head.position.y, 0.92);
+  scanLineMat.opacity = isWorking ? 0.28 : (isSpeaking ? 0.18 : 0.10);
+
+  // ── Orbit rings ──────────────────────────────
+  const ringSpeed = isWorking ? 2.2 : (isSpeaking ? 1.3 : 0.55);
+  ring1.rotation.z += dt * ringSpeed * 0.38;
+  ring2.rotation.z -= dt * ringSpeed * 0.28;
+
+  // Orbit node 1 on ring1
+  nodeAngle1 += dt * ringSpeed * 1.2;
+  const r1 = 1.7;
+  const tilt1 = Math.PI / 2 + 0.35;
+  node1.position.set(
+    r1 * Math.cos(nodeAngle1),
+    r1 * Math.sin(nodeAngle1) * Math.cos(tilt1) - 0.2,
+    r1 * Math.sin(nodeAngle1) * Math.sin(tilt1)
+  );
+
+  // Orbit node 2 on ring2
+  nodeAngle2 += dt * ringSpeed * 0.9;
+  const r2 = 1.42;
+  const tilt2 = Math.PI / 2 - 0.42;
+  node2.position.set(
+    r2 * Math.cos(nodeAngle2),
+    r2 * Math.sin(nodeAngle2) * Math.cos(tilt2) - 0.2,
+    r2 * Math.sin(nodeAngle2) * Math.sin(tilt2)
+  );
+
+  // ── State dynamic lights ──────────────────────
+  const lightIntensity = isWorking ? 4.5 : (isSpeaking ? 3.0 : 1.2);
+  stateLight1.intensity = lerp(stateLight1.intensity, lightIntensity, 0.06);
+  stateLight2.intensity = lerp(stateLight2.intensity, isSpeaking ? 3.5 : (isWorking ? 2.0 : 0.5), 0.06);
+
+  if (isWorking) {
+    stateLight1.color.setHex(0x00d4ff);
+    stateLight2.color.setHex(0x3d8ef8);
+  } else if (isSpeaking) {
+    stateLight1.color.setHex(0xaa66ff);
+    stateLight2.color.setHex(0x9b59b6);
+  } else {
+    stateLight1.color.setHex(0x00d4ff);
+    stateLight2.color.setHex(0x3d8ef8);
+  }
+
+  // ── Particles ────────────────────────────────
+  const pArr = particleGeo.attributes.position.array;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const sp = particleSpeeds[i];
+    sp.theta += sp.speed * speedMul;
+    const base = particleBasePos[i];
+    const jitter = sp.amp * Math.sin(sp.theta);
+    pArr[i * 3]     = base.x + jitter * 0.4;
+    pArr[i * 3 + 1] = base.y + jitter * 0.55;
+    pArr[i * 3 + 2] = base.z + jitter * 0.3;
+  }
+  particleGeo.attributes.position.needsUpdate = true;
+  particleMat.opacity = isWorking ? 0.75 : (isSpeaking ? 0.65 : 0.45);
+  particleMat.size = isWorking ? 0.028 : 0.020;
+
+  // Particle color
+  const particleColor = isSpeaking ? new THREE.Color(0.8, 0.4, 1.0) : new THREE.Color(0.0, 0.83, 1.0);
+  particleMat.color.lerp(particleColor, 0.05);
+
+  // ── Crown accent pulse ────────────────────────
+  crownAccentMat.emissiveIntensity = 1.2 + Math.sin(stateTime * (isWorking ? 8 : 3)) * 0.5;
+
+  // ── Status plane color ────────────────────────
+  if (isWorking)  statusMat.color.setHex(0x00d4ff);
+  else if (isSpeaking) statusMat.color.setHex(0x9b59b6);
+  else            statusMat.color.setHex(0x3d8ef8);
+  statusMat.opacity = 0.1 + Math.sin(stateTime * 2) * 0.04;
+
+  // ── Brow glow pulse ───────────────────────────
+  browGlowMat.emissiveIntensity = isSpeaking ? 2.5 : (isWorking ? 3.0 : 1.2);
+
+  // ── Circuit flicker ───────────────────────────
+  if (Math.random() < 0.015) {
+    circuitMat.opacity = 0.3 + Math.random() * 0.6;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ═══════════════════════════════════════════════
+//  Resize  — no-op since we use fixed pixel size
+// ═══════════════════════════════════════════════
+window.addEventListener('resize', () => {
+  // Widget is fixed-size; nothing to do.
+  // If you ever make the widget resizable, update W/H here.
+});
+
+// ═══════════════════════════════════════════════
+//  Boot
+// ═══════════════════════════════════════════════
+animate();
+
+// Subtle initial speaking greeting
+setTimeout(() => setState('speaking'), 200);
+setTimeout(() => setState('idle'), 3500);
+</script>
+</body>
+</html>

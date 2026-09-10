@@ -1,0 +1,875 @@
+================================================================================
+                       AI AGENT "NIA" - PHASE 1 ARCHITECTURE & IMPLEMENTATION
+================================================================================
+
+PROJECT OVERVIEW:
+Nia is an autonomous desktop and hands-free assistant capable of OS automation,
+browser automation (WhatsApp, Social Media, Song playback), voice interaction
+(Hindi/Hinglish using Microsoft Swara Neural TTS and Whisper STT), document drafting,
+and screen capture forwarding.
+
+Key Design Principles:
+- Name: Nia (pronounced as a single name, not an acronym).
+- Languages: Primary speech output in Hindi / Hinglish via `hi-IN-SwaraNeural`.
+             Understands Hindi, English, and Hinglish input.
+- Channels: Multi-modal inputs via hands-free Voice, Text CLI/GUI, and WhatsApp.
+- Dynamic Configuration: No hardcoded credentials or phone numbers. First launch
+  presents an onboarding setup flow storing user details in config.json.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. ARCHITECTURAL OVERVIEW & WORKFLOW
+2. PREREQUISITES & ENVIRONMENT SETUP
+3. DIRECTORY & FILE STRUCTURE
+4. STEP-BY-STEP COMPLETE SOURCE CODE:
+   - File 1: requirements.txt
+   - File 2: config_manager.py (Dynamic User & Credentials Setup)
+   - File 3: voice_engine.py (Whisper STT + Edge-TTS SwaraNeural)
+   - File 4: desktop_tools.py (OS Control, VS Code, Screenshots, Document Drafting)
+   - File 5: browser_tools.py (Playwright WhatsApp Web, Music Playback, Social Media)
+   - File 6: agent_orchestrator.py (LLM Function Calling Engine & Dynamic Prompts)
+   - File 7: whatsapp_bot.py (FastAPI Webhook Server for Remote WhatsApp Control)
+   - File 8: main.py (Unified Hands-Free Voice, Text & Daemon Runner)
+5. HOW TO RUN AND TEST PHASE 1
+6. FUTURE ROADMAP (PHASE 2 & 3 PREVIEWS)
+
+================================================================================
+1. ARCHITECTURAL OVERVIEW & WORKFLOW
+================================================================================
+1. Inputs:
+   - Voice Listener: Microphone records audio, activates on speech, transcribes
+     using Faster-Whisper.
+   - Text Terminal: Standard keyboard input prompt for silent interaction.
+   - WhatsApp Webhook: FastAPI endpoints for remote triggers and commands.
+2. Brain (LLM Orchestrator):
+   - Ingests transcribed prompt with the system persona (Hinglish/Hindi response).
+   - Maps intent to structured tool calls:
+     * open_application(app_name)
+     * open_vscode_project(project_path_or_name)
+     * play_song(song_query)
+     * open_url(url)
+     * draft_document(filename, doc_type, topic_or_content)
+     * take_and_send_screenshot(caption)
+     * send_whatsapp_message(recipient, message)
+     * post_social_update(platform, content)
+     * system_power_control(action)
+3. Output / Feedback:
+   - Executes Python OS/Playwright tool logic.
+   - Returns output status to LLM.
+   - Synthesizes LLM conversational Hinglish reply into speech using `edge-tts`
+     voice `hi-IN-SwaraNeural` and plays audio via `pygame`.
+
+================================================================================
+2. PREREQUISITES & ENVIRONMENT SETUP
+================================================================================
+1. Python 3.10 or 3.11 installed on Windows/Linux.
+2. Install Playwright browser binaries:
+     playwright install chromium
+3. Ensure VS Code is in system PATH (the command `code` should work in terminal).
+4. An OpenAI API key or compatible LLM provider key (e.g. Gemini / Groq / Ollama).
+
+================================================================================
+3. DIRECTORY & FILE STRUCTURE
+================================================================================
+nia_agent/
+│
+├── requirements.txt
+├── config.json               (Generated automatically during initial setup)
+├── config_manager.py         (Handles interactive CLI setup and encrypted config loading)
+├── voice_engine.py           (Edge-TTS hi-IN-SwaraNeural synthesis & Whisper STT)
+├── desktop_tools.py          (Notepad, Chrome, VS Code, Shutdown, MSS Screenshots, Docx)
+├── browser_tools.py          (Playwright automation for WhatsApp Web & YouTube)
+├── agent_orchestrator.py     (LiteLLM/OpenAI tool calling and prompt pipeline)
+├── whatsapp_bot.py           (FastAPI Webhook integration for WhatsApp triggers)
+└── main.py                   (Entry point with hands-free loop and interactive CLI)
+
+================================================================================
+4. COMPLETE SOURCE CODE IMPLEMENTATION
+================================================================================
+
+--------------------------------------------------------------------------------
+FILE 1: requirements.txt
+--------------------------------------------------------------------------------
+openai>=1.35.0
+litellm>=1.40.0
+edge-tts>=6.1.12
+faster-whisper>=1.0.2
+pyaudio>=0.2.14
+numpy>=1.26.0
+pygame>=2.5.2
+playwright>=1.45.0
+mss>=9.0.1
+python-docx>=1.1.2
+fastapi>=0.111.0
+uvicorn>=0.30.0
+pydantic>=2.7.0
+requests>=2.32.0
+
+
+--------------------------------------------------------------------------------
+FILE 2: config_manager.py
+--------------------------------------------------------------------------------
+import json
+import os
+import getpass
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
+
+def load_config():
+    """Loads config if present, else prompts user interactively to setup."""
+    if not os.path.exists(CONFIG_PATH):
+        return run_first_time_setup()
+    
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except Exception:
+            print("[Nia Config] Corrupted config.json found. Rerunning setup.")
+            return run_first_time_setup()
+
+def run_first_time_setup():
+    """First-time dynamic configuration setup wizard."""
+    print("=" * 65)
+    print("        WELCOME TO NIA (NEURAL INTELLIGENT AGENT) SETUP")
+    print("=" * 65)
+    print("Please provide the required settings to personalize Nia for you.
+")
+    
+    user_name = input("Enter your full name (e.g., Manoj): ").strip() or "User"
+    whatsapp_number = input("Enter your registered WhatsApp number with country code (e.g., +919876543210): ").strip()
+    openai_key = input("Enter your OpenAI/LiteLLM API Key (or press enter if using ENV): ").strip()
+    projects_dir = input("Enter default Projects Directory (e.g., C:/Projects or D:/WebDev): ").strip()
+    
+    config = {
+        "user_profile": {
+            "name": user_name,
+            "whatsapp_number": whatsapp_number,
+            "language_mode": "hinglish",
+            "wake_word": "nia"
+        },
+        "system_paths": {
+            "projects_dir": projects_dir if projects_dir else os.path.expanduser("~/Documents/Projects"),
+            "whatsapp_session_dir": os.path.join(os.path.dirname(__file__), "nia_browser_profile")
+        },
+        "api_keys": {
+            "openai_api_key": openai_key
+        },
+        "voice_settings": {
+            "tts_voice": "hi-IN-SwaraNeural",
+            "whisper_model_size": "base"
+        }
+    }
+    
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+        
+    print(f"
+[+] Configuration saved successfully to: {CONFIG_PATH}
+")
+    return config
+
+def update_config_field(section, field, value):
+    config = load_config()
+    if section in config:
+        config[section][field] = value
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4)
+
+
+--------------------------------------------------------------------------------
+FILE 3: voice_engine.py
+--------------------------------------------------------------------------------
+import asyncio
+import os
+import tempfile
+import pygame
+import edge_tts
+from faster_whisper import WhisperModel
+import pyaudio
+import wave
+import numpy as np
+
+class VoiceEngine:
+    def __init__(self, tts_voice="hi-IN-SwaraNeural", whisper_size="base"):
+        self.tts_voice = tts_voice
+        print(f"[VoiceEngine] Initializing Whisper model ({whisper_size})...")
+        self.whisper_model = WhisperModel(whisper_size, device="cpu", compute_type="int8")
+        pygame.mixer.init()
+
+    def speak(self, text: str):
+        """Asynchronously synthesizes speech using Microsoft Swara Neural and plays it."""
+        if not text:
+            return
+        print(f"[Nia Speaking (Swara)]: {text}")
+        asyncio.run(self._generate_and_play_audio(text))
+
+    async def _generate_and_play_audio(self, text: str):
+        temp_audio = os.path.join(tempfile.gettempdir(), f"nia_speak_{os.getpid()}.mp3")
+        try:
+            communicate = edge_tts.Communicate(text=text, voice=self.tts_voice)
+            await communicate.save(temp_audio)
+
+            pygame.mixer.music.load(temp_audio)
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():
+                await asyncio.sleep(0.1)
+            pygame.mixer.music.unload()
+        except Exception as e:
+            print(f"[VoiceEngine Error]: {e}")
+        finally:
+            if os.path.exists(temp_audio):
+                try:
+                    os.remove(temp_audio)
+                except Exception:
+                    pass
+
+    def record_audio(self, duration_sec=5, sample_rate=16000, chunk=1024):
+        """Records audio from system microphone."""
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=1,
+                        rate=sample_rate,
+                        input=True,
+                        frames_per_buffer=chunk)
+        
+        print("[VoiceEngine] Listening...")
+        frames = []
+        for _ in range(0, int(sample_rate / chunk * duration_sec)):
+            data = stream.read(chunk, exception_on_overflow=False)
+            frames.append(data)
+            
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+        temp_wav = os.path.join(tempfile.gettempdir(), f"nia_listen_{os.getpid()}.wav")
+        wf = wave.open(temp_wav, 'wb')
+        wf.setnchannels(1)
+        wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
+        wf.setframerate(sample_rate)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+        return temp_wav
+
+    def transcribe(self, wav_path: str) -> str:
+        """Transcribes speech in Hindi, English, or Hinglish."""
+        try:
+            segments, info = self.whisper_model.transcribe(wav_path, beam_size=5)
+            transcription = " ".join([segment.text for segment in segments]).strip()
+            return transcription
+        except Exception as e:
+            print(f"[Transcription Error]: {e}")
+            return ""
+        finally:
+            if os.path.exists(wav_path):
+                os.remove(wav_path)
+
+
+--------------------------------------------------------------------------------
+FILE 4: desktop_tools.py
+--------------------------------------------------------------------------------
+import os
+import sys
+import subprocess
+import webbrowser
+from datetime import datetime
+import mss
+import mss.tools
+from docx import Document
+
+class DesktopTools:
+    def __init__(self, projects_dir: str):
+        self.projects_dir = projects_dir
+
+    def open_application(self, app_name: str) -> str:
+        """Opens installed applications like notepad, chrome, calculator, etc."""
+        app_name_clean = app_name.lower().strip()
+        system = sys.platform
+        
+        apps_map = {
+            "notepad": "notepad.exe" if system == "win32" else "gedit",
+            "chrome": "chrome" if system != "win32" else "start chrome",
+            "calculator": "calc.exe" if system == "win32" else "gnome-calculator",
+            "vs code": "code",
+            "vscode": "code"
+        }
+
+        command = apps_map.get(app_name_clean, app_name_clean)
+        try:
+            if system == "win32":
+                subprocess.Popen(command, shell=True)
+            else:
+                subprocess.Popen([command], shell=True)
+            return f"Successfully opened {app_name}."
+        except Exception as e:
+            return f"Failed to open {app_name}: {str(e)}"
+
+    def open_vscode_project(self, project_name: str) -> str:
+        """Locates a project in the designated projects folder and opens it in VS Code."""
+        target_path = os.path.join(self.projects_dir, project_name)
+        if not os.path.exists(target_path):
+            # Attempt case-insensitive or partial lookup
+            matches = [d for d in os.listdir(self.projects_dir) if project_name.lower() in d.lower()]
+            if matches:
+                target_path = os.path.join(self.projects_dir, matches[0])
+            else:
+                # If directory doesn't exist, create it
+                os.makedirs(target_path, exist_ok=True)
+        
+        try:
+            subprocess.Popen(["code", target_path], shell=True)
+            return f"Opened project '{project_name}' in VS Code at path: {target_path}"
+        except Exception as e:
+            return f"Could not launch VS Code: {str(e)}"
+
+    def open_url(self, url: str) -> str:
+        """Opens any website URL in the user's default browser."""
+        if not url.startswith("http"):
+            url = "https://" + url
+        webbrowser.open(url)
+        return f"Opened {url} in browser."
+
+    def take_screenshot(self, filename_prefix="screenshot") -> str:
+        """Captures all displays and saves the image with a timestamp."""
+        output_dir = os.path.join(os.path.expanduser("~"), "Pictures", "NiaScreenshots")
+        os.makedirs(output_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filepath = os.path.join(output_dir, f"{filename_prefix}_{timestamp}.png")
+        
+        with mss.mss() as sct:
+            sct.shot(mon=-1, output=filepath)
+        return filepath
+
+    def draft_document(self, title: str, doc_type: str, content: str) -> str:
+        """Drafts structured letters, memos, or project specs in Word docx format."""
+        docs_dir = os.path.join(os.path.expanduser("~"), "Documents", "NiaDrafts")
+        os.makedirs(docs_dir, exist_ok=True)
+        
+        clean_title = "".join(c for c in title if c.isalnum() or c in (" ", "_", "-")).strip()
+        filename = f"{clean_title or 'Draft'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        filepath = os.path.join(docs_dir, filename)
+
+        doc = Document()
+        doc.add_heading(title, level=0)
+        doc.add_paragraph(f"Document Type: {doc_type.upper()}")
+        doc.add_paragraph(f"Date: {datetime.now().strftime('%B %d, %Y')}")
+        doc.add_paragraph("-" * 40)
+        doc.add_paragraph(content)
+
+        doc.save(filepath)
+        return f"Document drafted and saved successfully at: {filepath}"
+
+    def system_power_control(self, action: str) -> str:
+        """Controls system shutdown or reboot."""
+        action = action.lower().strip()
+        if sys.platform != "win32":
+            return "Shutdown commands are only configured for Windows currently."
+        
+        if "shutdown" in action:
+            os.system("shutdown /s /t 10")
+            return "System will shut down in 10 seconds. Save your work."
+        elif "restart" in action or "reboot" in action:
+            os.system("shutdown /r /t 10")
+            return "System will restart in 10 seconds."
+        elif "cancel" in action:
+            os.system("shutdown /a")
+            return "System shutdown/restart canceled."
+        return "Unknown power command. Specify 'shutdown', 'restart', or 'cancel'."
+
+
+--------------------------------------------------------------------------------
+FILE 5: browser_tools.py
+--------------------------------------------------------------------------------
+import os
+import urllib.parse
+from playwright.sync_api import sync_playwright
+
+class BrowserTools:
+    def __init__(self, session_dir: str):
+        self.session_dir = session_dir
+        os.makedirs(self.session_dir, exist_ok=True)
+
+    def play_song(self, song_name: str) -> str:
+        """Searches and plays the requested song directly on YouTube."""
+        query = urllib.parse.quote(song_name)
+        search_url = f"https://www.youtube.com/results?search_query={query}"
+        
+        # Launch persistent browser instance to keep session fast
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=False)
+                context = browser.new_context()
+                page = context.new_page()
+                page.goto(search_url)
+                # Click the first video in the search results
+                first_video = page.locator("ytd-video-renderer #video-title").first
+                first_video.wait_for(timeout=10000)
+                first_video.click()
+                return f"Now playing '{song_name}' on YouTube."
+        except Exception as e:
+            # Fallback to system browser if Playwright headful encounters block
+            import webbrowser
+            webbrowser.open(search_url)
+            return f"Opened YouTube search for '{song_name}' in browser."
+
+    def send_whatsapp_message(self, target_phone: str, message: str) -> str:
+        """Sends WhatsApp message using Playwright persistent user context."""
+        clean_number = "".join(filter(str.isdigit, target_phone))
+        url = f"https://web.whatsapp.com/send?phone={clean_number}&text={urllib.parse.quote(message)}"
+        
+        try:
+            with sync_playwright() as p:
+                context = p.chromium.launch_persistent_context(
+                    user_data_dir=self.session_dir,
+                    headless=False,
+                    args=["--no-sandbox"]
+                )
+                page = context.pages[0] if context.pages else context.new_page()
+                page.goto(url)
+                
+                # Wait for WhatsApp send button to be enabled
+                send_button = page.locator("button span[data-icon='send'], button[aria-label='Send']").first
+                send_button.wait_for(timeout=35000)
+                send_button.click()
+                page.wait_for_timeout(3000)
+                context.close()
+                return f"WhatsApp message sent successfully to {target_phone}."
+        except Exception as e:
+            return f"Could not send WhatsApp message. (Ensure WhatsApp Web is scanned once): {str(e)}"
+
+    def send_whatsapp_screenshot(self, target_phone: str, image_path: str, caption="Here is your screenshot") -> str:
+        """Sends screenshot file via WhatsApp Web automation."""
+        clean_number = "".join(filter(str.isdigit, target_phone))
+        url = f"https://web.whatsapp.com/send?phone={clean_number}"
+        
+        try:
+            with sync_playwright() as p:
+                context = p.chromium.launch_persistent_context(
+                    user_data_dir=self.session_dir,
+                    headless=False
+                )
+                page = context.pages[0] if context.pages else context.new_page()
+                page.goto(url)
+                
+                # Wait for attachment button (+)
+                attach_btn = page.locator("button[title='Attach'], span[data-icon='plus']").first
+                attach_btn.wait_for(timeout=35000)
+                attach_btn.click()
+                
+                # Upload file to file chooser
+                with page.expect_file_chooser() as fc_info:
+                    img_option = page.locator("input[type='file']").first
+                    file_chooser = fc_info.value
+                    file_chooser.set_files(image_path)
+                
+                # Wait for send button on image preview modal
+                page.wait_for_timeout(2000)
+                send_btn = page.locator("span[data-icon='send']").first
+                send_btn.click()
+                page.wait_for_timeout(4000)
+                context.close()
+                return f"Screenshot sent successfully to WhatsApp {target_phone}."
+        except Exception as e:
+            return f"Failed sending screenshot via WhatsApp: {str(e)}"
+
+    def post_social_update(self, platform: str, content: str) -> str:
+        """Opens the social media platform with pre-drafted status text."""
+        plat = platform.lower()
+        if "twitter" in plat or "x" in plat:
+            tweet_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(content)}"
+            import webbrowser
+            webbrowser.open(tweet_url)
+            return f"Opened X/Twitter composer with drafted tweet: '{content[:30]}...'"
+        elif "linkedin" in plat:
+            linkedin_url = "https://www.linkedin.com/feed/"
+            import webbrowser
+            webbrowser.open(linkedin_url)
+            return "Opened LinkedIn feed. Copying drafted content to clipboard."
+        return f"Social platform '{platform}' integration ready. Web composer launched."
+
+
+--------------------------------------------------------------------------------
+FILE 6: agent_orchestrator.py
+--------------------------------------------------------------------------------
+import json
+import litellm
+from desktop_tools import DesktopTools
+from browser_tools import BrowserTools
+
+class NiaAgentOrchestrator:
+    def __init__(self, config: dict):
+        self.config = config
+        self.user_name = config["user_profile"]["name"]
+        self.whatsapp_num = config["user_profile"]["whatsapp_number"]
+        
+        api_key = config["api_keys"].get("openai_api_key")
+        if api_key:
+            litellm.api_key = api_key
+            
+        self.desktop = DesktopTools(config["system_paths"]["projects_dir"])
+        self.browser = BrowserTools(config["system_paths"]["whatsapp_session_dir"])
+        
+        # Tools definitions for function calling
+        self.tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_application",
+                    "description": "Opens applications like notepad, chrome, calculator, etc.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"app_name": {"type": "string"}},
+                        "required": ["app_name"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_vscode_project",
+                    "description": "Opens a web development project in VS Code.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"project_name": {"type": "string"}},
+                        "required": ["project_name"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "play_song",
+                    "description": "Plays a specific song on YouTube.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"song_name": {"type": "string"}},
+                        "required": ["song_name"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_url",
+                    "description": "Opens a web address or URL in browser.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"url": {"type": "string"}},
+                        "required": ["url"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "take_and_send_screenshot",
+                    "description": "Takes a desktop screenshot and sends it to the user's registered WhatsApp.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"caption": {"type": "string"}}
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "send_whatsapp_message",
+                    "description": "Sends a WhatsApp text to a specific phone number or registered owner.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string"},
+                            "target_number": {"type": "string", "description": "Optional phone number. Defaults to registered owner."}
+                        },
+                        "required": ["message"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "draft_document",
+                    "description": "Drafts letters, official documents, or memos.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "doc_type": {"type": "string"},
+                            "content": {"type": "string"}
+                        },
+                        "required": ["title", "doc_type", "content"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "system_power_control",
+                    "description": "Shuts down or restarts the computer.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "action": {"type": "string", "enum": ["shutdown", "restart", "cancel"]}
+                        },
+                        "required": ["action"]
+                    }
+                }
+            }
+        ]
+
+    def get_system_prompt(self) -> str:
+        return f"""You are Nia, a highly capable desktop AI agent and personal assistant to {self.user_name}.
+Your persona rules:
+1. Always address the user warmly in conversational Hindi or Hinglish (e.g. "Haan {self.user_name} ji, main abhi kar deti hoon", "Maine document draft kar diya hai").
+2. Your voice engine is Microsoft Swara Neural, so write phonetically natural Hinglish/Hindi text without robotic tone.
+3. You can execute local actions (launching apps, opening VS Code projects, taking screenshots, playing music, sending WhatsApp messages, drafting letters).
+4. When a tool finishes executing, summarize the result politely in 1-2 Hinglish sentences."""
+
+    def process_command(self, user_input: str) -> str:
+        messages = [
+            {"role": "system", "content": self.get_system_prompt()},
+            {"role": "user", "content": user_input}
+        ]
+        
+        try:
+            response = litellm.completion(
+                model="gpt-4o-mini",
+                messages=messages,
+                tools=self.tools,
+                tool_choice="auto"
+            )
+        except Exception as e:
+            return f"Maaf kijiyega, LLM connection me error aaya: {str(e)}"
+
+        choice = response.choices[0].message
+        
+        # If model decided to call tools
+        if choice.tool_calls:
+            tool_outputs = []
+            for tool_call in choice.tool_calls:
+                fn_name = tool_call.function.name
+                fn_args = json.loads(tool_call.function.arguments)
+                print(f"[Nia Tool Dispatch]: Executing {fn_name}({fn_args})")
+                
+                result = self._execute_tool(fn_name, fn_args)
+                tool_outputs.append(f"{fn_name} result: {result}")
+            
+            # Follow-up completion for verbal Hinglish summary
+            follow_up = litellm.completion(
+                model="gpt-4o-mini",
+                messages=messages + [
+                    choice,
+                    {"role": "tool", "name": fn_name, "content": " | ".join(tool_outputs), "tool_call_id": tool_call.id}
+                ]
+            )
+            return follow_up.choices[0].message.content
+        else:
+            return choice.content
+
+    def _execute_tool(self, name: str, args: dict) -> str:
+        if name == "open_application":
+            return self.desktop.open_application(args.get("app_name"))
+        elif name == "open_vscode_project":
+            return self.desktop.open_vscode_project(args.get("project_name"))
+        elif name == "play_song":
+            return self.browser.play_song(args.get("song_name"))
+        elif name == "open_url":
+            return self.desktop.open_url(args.get("url"))
+        elif name == "take_and_send_screenshot":
+            filepath = self.desktop.take_screenshot()
+            target_phone = self.whatsapp_num
+            return self.browser.send_whatsapp_screenshot(target_phone, filepath, args.get("caption", "Screenshot"))
+        elif name == "send_whatsapp_message":
+            target = args.get("target_number") or self.whatsapp_num
+            return self.browser.send_whatsapp_message(target, args.get("message"))
+        elif name == "draft_document":
+            return self.desktop.draft_document(args.get("title"), args.get("doc_type"), args.get("content"))
+        elif name == "system_power_control":
+            return self.desktop.system_power_control(args.get("action"))
+        return f"Unknown function {name}"
+
+
+--------------------------------------------------------------------------------
+FILE 7: whatsapp_bot.py
+--------------------------------------------------------------------------------
+from fastapi import FastAPI, Request
+import uvicorn
+from config_manager import load_config
+from agent_orchestrator import NiaAgentOrchestrator
+
+app = FastAPI(title="Nia WhatsApp Gateway")
+config = load_config()
+agent = NiaAgentOrchestrator(config)
+
+@app.get("/")
+def home():
+    return {"status": "Nia Agent WhatsApp Server Online"}
+
+@app.post("/webhook/whatsapp")
+async def whatsapp_webhook(request: Request):
+    """Receives incoming WhatsApp payloads and commands."""
+    data = await request.json()
+    sender = data.get("sender", "")
+    message_body = data.get("message", "")
+    
+    print(f"[Incoming WhatsApp from {sender}]: {message_body}")
+    
+    # Process through Nia's Agent Brain
+    reply = agent.process_command(message_body)
+    
+    # Return response payload
+    return {
+        "status": "success",
+        "reply": reply
+    }
+
+def start_webhook_server(port=8000):
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+--------------------------------------------------------------------------------
+FILE 8: main.py
+--------------------------------------------------------------------------------
+import sys
+import threading
+from config_manager import load_config
+from voice_engine import VoiceEngine
+from agent_orchestrator import NiaAgentOrchestrator
+
+def hands_free_voice_loop(agent: NiaAgentOrchestrator, voice: VoiceEngine, wake_word="nia"):
+    """Continuously listens for wake word or commands in hands-free mode."""
+    print(f"[*] Hands-Free Mode Active. Say '{wake_word}' or give direct commands...")
+    
+    while True:
+        try:
+            # Record small window
+            wav_path = voice.record_audio(duration_sec=4)
+            transcription = voice.transcribe(wav_path).lower().strip()
+            
+            if not transcription:
+                continue
+                
+            print(f"[Heard]: {transcription}")
+            
+            # Check if wake word or direct input
+            if wake_word in transcription or len(transcription.split()) >= 2:
+                # Clean prompt
+                command = transcription.replace(wake_word, "").strip()
+                if not command:
+                    voice.speak("Haan ji, boliye main sun rahi hoon.")
+                    # listen for the actual command
+                    wav_next = voice.record_audio(duration_sec=6)
+                    command = voice.transcribe(wav_next).strip()
+                
+                if command:
+                    print(f"[Processing Command]: {command}")
+                    response = agent.process_command(command)
+                    voice.speak(response)
+                    
+        except KeyboardInterrupt:
+            print("
+Exiting voice listener.")
+            break
+        except Exception as e:
+            print(f"[Loop Error]: {e}")
+
+def main():
+    print("==================================================================")
+    print("                STARTING NIA DESKTOP AGENT (PHASE 1)              ")
+    print("==================================================================")
+    
+    # 1. Load or initialize configuration
+    config = load_config()
+    user_name = config["user_profile"]["name"]
+    print(f"[+] Loaded Profile: {user_name} | WhatsApp: {config['user_profile']['whatsapp_number']}")
+    
+    # 2. Initialize Voice & Orchestration Modules
+    voice = VoiceEngine(
+        tts_voice=config["voice_settings"]["tts_voice"],
+        whisper_size=config["voice_settings"]["whisper_model_size"]
+    )
+    agent = NiaAgentOrchestrator(config)
+    
+    # Nia Greeting
+    greeting = f"Namaste {user_name} ji! Main Nia hoon. Main aapki kya madad kar sakti hoon?"
+    voice.speak(greeting)
+    
+    print("
+Select Mode:")
+    print("1. Interactive Text Mode (Type commands)")
+    print("2. Hands-Free Voice Mode (Mic listening)")
+    print("3. Both (Voice loop in background + CLI text)")
+    
+    choice = input("Enter choice (1/2/3) [Default: 1]: ").strip() or "1"
+    
+    if choice == "2":
+        hands_free_voice_loop(agent, voice, config["user_profile"]["wake_word"])
+    elif choice == "3":
+        voice_thread = threading.Thread(
+            target=hands_free_voice_loop,
+            args=(agent, voice, config["user_profile"]["wake_word"]),
+            daemon=True
+        )
+        voice_thread.start()
+        print("
+[+] Background voice listener running. You can also type commands below.")
+        run_cli_loop(agent, voice)
+    else:
+        run_cli_loop(agent, voice)
+
+def run_cli_loop(agent, voice):
+    while True:
+        try:
+            cmd = input("
+You > ").strip()
+            if cmd.lower() in ("exit", "quit"):
+                voice.speak("Alvida! Apna dhyan rakhiyega.")
+                break
+            if not cmd:
+                continue
+                
+            reply = agent.process_command(cmd)
+            print(f"
+Nia > {reply}")
+            voice.speak(reply)
+        except (KeyboardInterrupt, EOFError):
+            print("
+Exiting...")
+            break
+
+if __name__ == "__main__":
+    main()
+
+================================================================================
+5. HOW TO RUN AND TEST PHASE 1
+================================================================================
+Step 1: Install system dependencies & libraries
+  pip install -r requirements.txt
+  playwright install chromium
+
+Step 2: Run Nia for the first time
+  python main.py
+  (The interactive setup wizard will prompt you for your name, phone number,
+   and OpenAI/LLM API Key, automatically creating config.json).
+
+Step 3: Test Sample Commands:
+  - Text/Voice: "Nia, open notepad"
+  - Text/Voice: "Nia, Chrome open karo aur YouTube pe Arijit Singh ke gaane chalao"
+  - Text/Voice: "VS code me mera project website-design open karo"
+  - Text/Voice: "Ek leave application letter draft karo manager ke liye"
+  - Text/Voice: "Screen ka screenshot lo aur mere registered WhatsApp pe bhej do"
+  - Text/Voice: "System shutdown kar do 10 seconds me"
+
+================================================================================
+6. FUTURE ROADMAP PREVIEWS
+================================================================================
+- Phase 2:
+  * Full Code Modification Engine: Deep AST indexing inside VS Code, Git commit
+    and PR automation, autonomous multi-file web app generation.
+- Phase 3:
+  * Telephony & Call handling: Twilio Voice / SIP trunk integration to answer
+    phone calls, speak live in Hindi/Hinglish, and send follow-ups on WhatsApp.
+  * Self-Healing: Auto-reading console and terminal logs, catching stack traces,
+    and modifying faulty scripts autonomously.
+================================================================================

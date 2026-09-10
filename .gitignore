@@ -1,0 +1,30 @@
+# Local secrets and user-specific configuration
+nia_agent/config.json
+.env
+.env.*
+
+# Browser sessions and generated state
+nia_agent/nia_browser_profile/
+ia_agent/memory_bank.json
+nia_agent/reminders.json
+nia_agent/workflows.json
+nia_agent/.nia_backups/
+
+# Python caches and local tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Generated media and logs
+*.mp3
+*.wav
+*.log
+nia_agent/mouth_frames/generated/
+
+# OS/editor files
+.vscode/
+.DS_Store
+Thumbs.db
