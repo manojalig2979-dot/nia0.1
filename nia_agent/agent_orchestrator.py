@@ -31,7 +31,8 @@ class NiaAgentOrchestrator:
             os.environ["OPENAI_API_KEY"] = api_key
             litellm.api_key = api_key
             
-        self.desktop = DesktopTools(config["system_paths"]["projects_dir"])
+        allowed_apps = config.get("permissions", {}).get("allowed_apps", [])
+        self.desktop = DesktopTools(config["system_paths"]["projects_dir"], allowed_apps=allowed_apps)
         self.browser = BrowserTools(config["system_paths"]["whatsapp_session_dir"])
         self.project_indexer = ProjectIndexer(config["system_paths"]["projects_dir"])
         self.code_workspace = CodeWorkspace(config["system_paths"]["projects_dir"])

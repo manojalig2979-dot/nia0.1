@@ -8,11 +8,12 @@ import mss.tools
 from docx import Document
 
 class DesktopTools:
-    def __init__(self, projects_dir: str):
+    def __init__(self, projects_dir: str, allowed_apps: list = None):
         self.projects_dir = projects_dir
+        self.allowed_apps = [app.lower().strip() for app in (allowed_apps or [])]
 
     def open_application(self, app_name: str) -> str:
-        """Opens installed applications like notepad, chrome, calculator, etc."""
+        """Opens installed applications explicitly permitted in the allowlist."""
         app_name_clean = app_name.lower().strip()
         system = sys.platform
         
@@ -20,8 +21,10 @@ class DesktopTools:
             "notepad": "notepad.exe" if system == "win32" else "gedit",
             "chrome": "chrome" if system != "win32" else "start chrome",
             "calculator": "calc.exe" if system == "win32" else "gnome-calculator",
+            "calc": "calc.exe" if system == "win32" else "gnome-calculator",
             "vs code": "code",
             "vscode": "code",
+            "code": "code",
             "taskmgr": "start taskmgr",
             "explorer": "start explorer",
             "cmd": "start cmd",
@@ -29,6 +32,10 @@ class DesktopTools:
             "paint": "start mspaint",
             "spotify": "start spotify"
         }
+
+        # Validate permission
+        if app_name_clean not in apps_map and app_name_clean not in self.allowed_apps:
+            return f"Permission Denied: '{app_name}' is not in the allowed applications list. Please add it to config.json if required."
 
         command = apps_map.get(app_name_clean, app_name_clean)
         try:

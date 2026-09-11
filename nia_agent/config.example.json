@@ -20,5 +20,13 @@
     "llm_settings": {
         "model": "gemini/gemini-3.6-flash",
         "base_url": "http://127.0.0.1:11434"
+    },
+    "permissions": {
+        "allowed_apps": [
+            "calc",
+            "mspaint",
+            "code",
+            "chrome"
+        ]
     }
 }
