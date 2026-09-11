@@ -1857,6 +1857,13 @@ class NiaMainWindow(QMainWindow):
         except Exception as e:
             print(f"[Reminder Manager Error]: {e}")
 
+        # ── Start Scheduled Workflow Manager ──
+        try:
+            if hasattr(self.agent, 'schedule_manager'):
+                self.agent.schedule_manager.workflow_triggered.connect(self._on_scheduled_workflow_triggered)
+        except Exception as e:
+            print(f"[Scheduled Workflow Manager Error]: {e}")
+
         self.home_view.set_avatar_state("speaking")
         self._greet()
         QTimer.singleShot(4500, lambda: self.home_view.set_avatar_state("idle"))
@@ -1977,6 +1984,15 @@ class NiaMainWindow(QMainWindow):
         if self.voice:
             import threading
             threading.Thread(target=self.voice.speak, args=(f"Aapka reminder: {msg_text}",), daemon=True).start()
+
+    def _on_scheduled_workflow_triggered(self, name, task):
+        alert_msg = f"⏱️ Scheduled Workflow '{name}' triggered: {task}"
+        self.home_view.add_chat_bubble(alert_msg, is_user=False)
+        self.chat_view.add_chat_bubble(alert_msg, is_user=False)
+        self.right_panel.add_activity("⏱️", f"Workflow: {name}")
+        
+        # Dispatch the task as a command
+        self._on_command(f"[Scheduled Workflow '{name}'] {task}")
 
     def _show_notifications(self):
         msg = "🔔 All Nia background subsystems are operational. No alerts pending."

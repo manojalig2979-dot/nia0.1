@@ -43,6 +43,10 @@ class NiaAgentOrchestrator:
         from memory_manager import MemoryManager
         self.memory = MemoryManager(os.path.join(os.path.dirname(__file__), "memory_bank.json"))
         
+        from schedule_manager import ScheduledWorkflowManager
+        self.schedule_manager = ScheduledWorkflowManager(os.path.join(os.path.dirname(__file__), "scheduled_workflows.json"))
+        self.schedule_manager.start()
+        
         # Tools definitions for function calling
         self.tools = [
             {
@@ -516,6 +520,50 @@ class NiaAgentOrchestrator:
                         "additionalProperties": False
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "schedule_workflow",
+                    "description": "Schedule a repetitive background workflow for Nia to execute.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "description": "A unique short name for the schedule."},
+                            "interval_seconds": {"type": "integer", "description": "How often to run the task, in seconds (min 60)."},
+                            "task": {"type": "string", "description": "The description of the task Nia should perform when the schedule triggers."}
+                        },
+                        "required": ["name", "interval_seconds", "task"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_scheduled_workflows",
+                    "description": "List all active scheduled workflows.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "remove_scheduled_workflow",
+                    "description": "Remove a scheduled workflow by its name.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "description": "The name of the schedule to remove."}
+                        },
+                        "required": ["name"],
+                        "additionalProperties": False
+                    }
+                }
             }
         ]
 
@@ -874,5 +922,21 @@ Your persona rules:
                 )
             except (FileNotFoundError, ValueError, OSError) as exc:
                 return f"Multi-file apply error: {exc}"
+        elif name == "schedule_workflow":
+            try:
+                return self.schedule_manager.add_schedule(
+                    args.get("name", ""),
+                    args.get("interval_seconds", 3600),
+                    args.get("task", "")
+                )
+            except ValueError as exc:
+                return f"Schedule error: {exc}"
+        elif name == "list_scheduled_workflows":
+            schedules = self.schedule_manager.list_schedules()
+            if not schedules:
+                return "No scheduled workflows."
+            return json.dumps(schedules, indent=2)
+        elif name == "remove_scheduled_workflow":
+            return self.schedule_manager.remove_schedule(args.get("name", ""))
         return f"Unknown function {name}"
 
