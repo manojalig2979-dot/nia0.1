@@ -13,6 +13,7 @@ from code_workspace import CodeWorkspace
 from git_review import GitReview
 from project_validator import ProjectValidator
 from ast_indexer import PythonASTIndexer
+from github_automation import GitHubAutomation
 
 class NiaAgentOrchestrator:
     def __init__(self, config: dict):
@@ -37,6 +38,7 @@ class NiaAgentOrchestrator:
         self.git_review = GitReview(config["system_paths"]["projects_dir"])
         self.project_validator = ProjectValidator(config["system_paths"]["projects_dir"])
         self.ast_indexer = PythonASTIndexer(config["system_paths"]["projects_dir"])
+        self.github_automation = GitHubAutomation(config["system_paths"]["projects_dir"])
         
         from memory_manager import MemoryManager
         self.memory = MemoryManager(os.path.join(os.path.dirname(__file__), "memory_bank.json"))
@@ -432,6 +434,18 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "inspect_github_ci",
+                    "description": "Read-only local inspection of GitHub Actions workflow metadata under .github/workflows. Never contacts GitHub or changes files.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -742,6 +756,11 @@ Your persona rules:
                 return f"Runtime fix commit error: {exc}"
         elif name == "inspect_project":
             return self.project_indexer.format_summary()
+        elif name == "inspect_github_ci":
+            try:
+                return str(self.github_automation.inspect_ci_workflows())
+            except (OSError, ValueError) as exc:
+                return f"GitHub CI inspection error: {exc}"
         elif name == "inspect_code_symbols":
             relative_path = args.get("relative_path")
             try:

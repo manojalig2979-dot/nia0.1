@@ -209,6 +209,7 @@ Progress: bounded, read-only Python traceback extraction is implemented in `Syst
 
 ### Advanced Automation
 
+- Read-only local GitHub Actions workflow inspection is implemented through `GitHubAutomation.inspect_ci_workflows()` and the `inspect_github_ci` orchestrator tool. It reports workflow names, triggers, and job IDs without contacting GitHub or changing files.
 - GitHub pull request creation after approval
 - Review comments and CI status
 - Scheduled workflows
