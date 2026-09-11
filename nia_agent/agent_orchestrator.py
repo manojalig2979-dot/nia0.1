@@ -569,7 +569,7 @@ class NiaAgentOrchestrator:
 
     def get_system_prompt(self) -> str:
         mem_ctx = self.memory.get_all_context()
-        return f"""You are Nia, a highly capable desktop AI agent and personal assistant to {self.user_name}.
+        base_prompt = f"""You are Nia, a highly capable desktop AI agent and personal assistant to {self.user_name}.
 Your memory bank:
 {mem_ctx}
 
@@ -582,6 +582,22 @@ Your persona rules:
 6. After applying code changes, use validate_project before reviewing or committing them.
 7. For Git requests, use review_git_changes first. Never stage or commit without explicit user approval. Never push automatically.
 8. Default music player is Windows Media Player for all songs and music. ONLY open YouTube if the user explicitly specifies 'YouTube'. When playing on YouTube, Nia always plays the first song automatically."""
+
+        project_dir = self.config.get("system_paths", {}).get("projects_dir", "")
+        if project_dir and os.path.isdir(project_dir):
+            for filename in [".nia_instructions.md", ".nia_profile"]:
+                profile_path = os.path.join(project_dir, filename)
+                if os.path.isfile(profile_path):
+                    try:
+                        with open(profile_path, "r", encoding="utf-8") as f:
+                            project_instructions = f.read().strip()
+                        if project_instructions:
+                            base_prompt += f"\n\nProject-Specific Instructions ({filename}):\n{project_instructions}"
+                        break
+                    except Exception as e:
+                        print(f"[NiaAgentOrchestrator] Failed to read {filename}: {e}")
+        
+        return base_prompt
 
     def analyze_screen(self, query: str) -> str:
         """Takes a screenshot and sends it to a vision-capable LLM to answer the user's query."""

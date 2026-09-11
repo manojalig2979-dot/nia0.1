@@ -213,7 +213,7 @@ Progress: bounded, read-only Python traceback extraction is implemented in `Syst
 - GitHub pull request creation after approval is implemented through `GitHubAutomation.create_pull_request()` and the `create_github_pr` orchestrator tool.
 - Review comments and CI status is implemented through `GitHubAutomation.inspect_pr_status()` and the `inspect_github_pr_status` orchestrator tool.
 - Scheduled workflows are implemented through `schedule_manager.py` allowing dynamic background intervals to trigger AI operations.
-- Project-specific agent profiles
+- Project-specific agent profiles are implemented. Nia will dynamically inject `.nia_instructions.md` or `.nia_profile` into its system prompt if found in the project root.
 - Permission and command allowlists
 
 ## Daily Start Commands
