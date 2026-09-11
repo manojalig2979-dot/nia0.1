@@ -1,4 +1,6 @@
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 
@@ -8,6 +10,20 @@ class GitHubAutomation:
     def __init__(self, root_directory: str):
         self.root = Path(root_directory).expanduser().resolve()
         self.workflow_root = self.root / ".github" / "workflows"
+
+    def _git_command(self, *arguments: str) -> str:
+        result = subprocess.run(
+            ["git", *arguments],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout).strip() or "git command failed")
+        return result.stdout.strip()
 
     @staticmethod
     def _unquote(value: str) -> str:
@@ -74,3 +90,49 @@ class GitHubAutomation:
             "workflows": workflows,
             "workflow_directory": ".github/workflows",
         }
+
+    def create_pull_request(
+        self,
+        title: str,
+        body: str = "",
+        base: str = "main",
+        head: str | None = None,
+        confirm: bool = False,
+    ) -> str:
+        """Create a GitHub pull request through the GitHub CLI after explicit approval."""
+        if not confirm:
+            raise ValueError("Set confirm=true only after reviewing the branch and pull request details.")
+        if not str(title).strip():
+            raise ValueError("Pull request title must not be empty.")
+
+        gh_path = shutil.which("gh")
+        if not gh_path:
+            raise FileNotFoundError("GitHub CLI 'gh' is not installed or not on PATH.")
+
+        branch_name = head or self._git_command("branch", "--show-current")
+        command = [
+            gh_path,
+            "pr",
+            "create",
+            "--title",
+            str(title).strip(),
+            "--base",
+            str(base).strip() or "main",
+            "--head",
+            branch_name.strip() or "main",
+        ]
+        if body.strip():
+            command.extend(["--body", body.strip()])
+
+        result = subprocess.run(
+            command,
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError((result.stderr or result.stdout).strip() or "GitHub PR creation failed")
+        return (result.stdout or result.stderr).strip() or "Pull request created successfully."

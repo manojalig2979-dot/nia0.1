@@ -446,6 +446,25 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "create_github_pr",
+                    "description": "Create a GitHub pull request through the GitHub CLI only after explicit approval and branch review.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "body": {"type": "string"},
+                            "base": {"type": "string", "default": "main"},
+                            "head": {"type": "string", "description": "Optional branch to open the PR from; defaults to the current branch."},
+                            "confirm": {"type": "boolean", "description": "Must be true only after the user reviews the PR details and approves."}
+                        },
+                        "required": ["title", "confirm"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -761,6 +780,17 @@ Your persona rules:
                 return str(self.github_automation.inspect_ci_workflows())
             except (OSError, ValueError) as exc:
                 return f"GitHub CI inspection error: {exc}"
+        elif name == "create_github_pr":
+            try:
+                return str(self.github_automation.create_pull_request(
+                    args.get("title", ""),
+                    body=args.get("body", ""),
+                    base=args.get("base", "main"),
+                    head=args.get("head"),
+                    confirm=bool(args.get("confirm", False)),
+                ))
+            except (OSError, ValueError, RuntimeError, FileNotFoundError) as exc:
+                return f"GitHub PR create error: {exc}"
         elif name == "inspect_code_symbols":
             relative_path = args.get("relative_path")
             try:
