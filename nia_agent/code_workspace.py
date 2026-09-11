@@ -68,6 +68,80 @@ class CodeWorkspace:
             previews.append(self.preview_change(relative_path, old_text, new_text))
         return "\n".join(previews)
 
+    def validate_change_plan(self, plan: dict) -> dict:
+        if not isinstance(plan, dict):
+            raise ValueError("Change plan must be a dictionary.")
+
+        reason = str(plan.get("reason", "")).strip()
+        expected_behavior = str(plan.get("expected_behavior", "")).strip()
+        risk_level = str(plan.get("risk_level", "")).strip()
+        changes = plan.get("changes", [])
+
+        if not reason or not expected_behavior or not risk_level:
+            raise ValueError("Change plan requires reason, expected_behavior, and risk_level.")
+        if not isinstance(changes, list) or not changes:
+            raise ValueError("Change plan requires at least one change entry.")
+
+        sensitive_names = {
+            ".env",
+            ".env.local",
+            "config.json",
+            "config.example.json",
+            "secrets.json",
+            "credentials.json",
+            "token.json",
+            "api_keys.json",
+            "*.pem",
+            "id_rsa",
+            ".gitignore",
+        }
+
+        diffs = []
+        affected_files = []
+
+        for change in changes:
+            relative_path = str(change.get("relative_path", "")).strip()
+            old_text = str(change.get("old_text", ""))
+            new_text = str(change.get("new_text", ""))
+            if not relative_path:
+                raise ValueError("Each change requires a relative_path.")
+
+            basename = Path(relative_path).name.lower()
+            if basename in sensitive_names or ".env" in basename or "secret" in basename or "key" in basename or "config" in basename:
+                raise ValueError(f"Sensitive path rejected: {relative_path}")
+            if any(part in {".nia_backups", "nia_browser_profile", ".git"} for part in Path(relative_path).parts):
+                raise ValueError(f"Sensitive path rejected: {relative_path}")
+
+            path = self._resolve_file(relative_path)
+            current_text = self.read_file(relative_path)
+            occurrences = current_text.count(old_text)
+            if not old_text:
+                raise ValueError(f"old_text must not be empty for {relative_path}.")
+            if occurrences == 0:
+                raise ValueError(f"old_text was not found in {relative_path}; the plan may be stale.")
+            if occurrences > 1:
+                raise ValueError(f"old_text occurs more than once in {relative_path}; provide a more specific block.")
+
+            proposed_text = current_text.replace(old_text, new_text, 1)
+            diff = "".join(difflib.unified_diff(
+                current_text.splitlines(keepends=True),
+                proposed_text.splitlines(keepends=True),
+                fromfile=relative_path,
+                tofile=relative_path,
+            ))
+            diffs.append(diff)
+            affected_files.append(relative_path)
+
+        combined_diff = "\n".join(diffs)
+        return {
+            "valid": True,
+            "reason": reason,
+            "expected_behavior": expected_behavior,
+            "risk_level": risk_level,
+            "affected_files": affected_files,
+            "diff": combined_diff,
+        }
+
     def apply_change(
         self,
         relative_path: str,

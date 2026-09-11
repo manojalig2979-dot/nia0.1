@@ -2,18 +2,27 @@ import json
 import os
 import subprocess
 import litellm
+try:
+    from system_diagnostics import SystemDiagnostics
+except ImportError:  # pragma: no cover - compatibility when importing from project root
+    from nia_agent.system_diagnostics import SystemDiagnostics
 from desktop_tools import DesktopTools
 from browser_tools import BrowserTools
 from project_indexer import ProjectIndexer
 from code_workspace import CodeWorkspace
 from git_review import GitReview
 from project_validator import ProjectValidator
+from ast_indexer import PythonASTIndexer
 
 class NiaAgentOrchestrator:
     def __init__(self, config: dict):
         self.config = config
         self.user_name = config["user_profile"]["name"]
         self.whatsapp_num = config["user_profile"]["whatsapp_number"]
+        self.diagnostics = SystemDiagnostics(
+            config,
+            log_dir=os.path.join(os.path.dirname(__file__), "logs")
+        )
         
         api_key = config["api_keys"].get("gemini_api_key") or config["api_keys"].get("openai_api_key")
         if api_key:
@@ -27,6 +36,7 @@ class NiaAgentOrchestrator:
         self.code_workspace = CodeWorkspace(config["system_paths"]["projects_dir"])
         self.git_review = GitReview(config["system_paths"]["projects_dir"])
         self.project_validator = ProjectValidator(config["system_paths"]["projects_dir"])
+        self.ast_indexer = PythonASTIndexer(config["system_paths"]["projects_dir"])
         
         from memory_manager import MemoryManager
         self.memory = MemoryManager(os.path.join(os.path.dirname(__file__), "memory_bank.json"))
@@ -292,6 +302,35 @@ class NiaAgentOrchestrator:
                         "additionalProperties": False
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "inspect_code_symbols",
+                    "description": "Read-only Python AST inspection that returns classes, functions, imports, and line numbers for a file or the configured project.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "relative_path": {"type": "string", "description": "Optional project-relative Python file to inspect."}
+                        },
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "inspect_project_structure",
+                    "description": "Read-only structured inspection for JavaScript, TypeScript, JSON, HTML, and CSS files using lightweight parsing.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "relative_path": {"type": "string", "description": "Project-relative file path for the structure inspection."}
+                        },
+                        "required": ["relative_path"],
+                        "additionalProperties": False
+                    }
+                }
             }
         ]
 
@@ -355,6 +394,10 @@ Your persona rules:
             return f"Screen analyze karte samay ek error aayi: {str(e)}"
 
     def process_command(self, user_input: str) -> str:
+        user_input = user_input.strip()
+        if user_input.lower() in {"check system status", "system status", "check diagnostics", "run diagnostics"}:
+            return self.diagnostics.get_status_summary()
+
         messages = [
             {"role": "system", "content": self.get_system_prompt()},
             {"role": "user", "content": user_input}
@@ -494,6 +537,17 @@ Your persona rules:
             return self.memory.remember(args.get("topic", "general"), args.get("fact"))
         elif name == "inspect_project":
             return self.project_indexer.format_summary()
+        elif name == "inspect_code_symbols":
+            relative_path = args.get("relative_path")
+            try:
+                return self.ast_indexer.format_summary(relative_path) if relative_path else self.ast_indexer.format_summary()
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                return f"Python symbol inspection error: {exc}"
+        elif name == "inspect_project_structure":
+            try:
+                return str(self.project_indexer.inspect_file_structure(args.get("relative_path", "")))
+            except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+                return f"Project structure inspection error: {exc}"
         elif name == "read_project_file":
             try:
                 return self.code_workspace.read_file(args.get("relative_path", ""))

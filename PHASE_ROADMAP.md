@@ -64,7 +64,13 @@ Current repository state at the time of this roadmap: clean and synchronized wit
 - Explicit-confirmation local Git commits
 - GitHub push performed manually after review
 
-## Phase 2: Remaining Work
+## Phase 2: Completed Additions
+
+- Better diagnostics with redacted startup logging, AI/provider status, API-key warnings, and microphone availability
+
+All currently planned Phase 2 implementation items are complete and covered by focused regression tests. The next step is release hygiene: run the full suite, review the complete diff, and commit only after explicit approval.
+
+## Phase 2 Historical Breakdown
 
 ### 1. Improve Project Indexing
 
@@ -142,7 +148,7 @@ Support a workflow like:
 - Tests for project validation output.
 - Tests for music command routing and Gemini fallback behavior.
 
-### 9. Add Better Diagnostics
+### 9. Add Better Diagnostics - Complete
 
 - Add a startup log file that does not include secrets.
 - Show AI provider and model status in Settings.
@@ -151,6 +157,8 @@ Support a workflow like:
 - Avoid silently returning a generic greeting when the AI provider fails.
 
 ## Phase 2 Recommended Starting Task
+
+The recommended Phase 2 starting task has been completed. The historical details below are retained for traceability.
 
 Start with **Python AST symbol inspection**.
 
@@ -172,6 +180,8 @@ Recommended files:
 
 ## Phase 3 Preview
 
+Phase 3 begins after the Phase 2 changes are reviewed and committed.
+
 Phase 3 should begin only after Phase 2 has tests and stable validation.
 
 ### Telephony and Live Calls
@@ -190,6 +200,10 @@ Phase 3 should begin only after Phase 2 has tests and stable validation.
 - Generate a previewed fix
 - Validate the fix
 - Require approval before applying or committing
+
+### Phase 3 Recommended Starting Task
+
+Start with read-only runtime error collection: capture application logs and terminal output, detect Python tracebacks, and return the related file and line before proposing any fix.
 
 ### Advanced Automation
 

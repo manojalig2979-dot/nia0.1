@@ -21,8 +21,20 @@ class ProjectValidator:
         if not python_files:
             return "No Python files found; no validation command was run."
 
+        pytest_files = [
+            path for path in python_files
+            if path.name.startswith("test_") or "test_" in path.stem or path.name.endswith("_test.py")
+        ]
+
+        if pytest_files:
+            command = [sys.executable, "-m", "pytest", "-q"]
+            action = "pytest"
+        else:
+            command = [sys.executable, "-m", "compileall", "-q", str(self.root)]
+            action = "compileall"
+
         result = subprocess.run(
-            [sys.executable, "-m", "compileall", "-q", str(self.root)],
+            command,
             cwd=self.root,
             capture_output=True,
             text=True,
@@ -32,7 +44,11 @@ class ProjectValidator:
             check=False,
         )
         if result.returncode == 0:
-            return f"Validation passed: Python compilation succeeded for {len(python_files)} files."
+            if action == "pytest":
+                return f"Validation passed: pytest succeeded for {len(pytest_files)} test file(s)."
+            return f"Validation passed: compileall succeeded for {len(python_files)} files."
 
         details = (result.stderr or result.stdout).strip()
+        if action == "pytest":
+            return f"Validation failed: pytest returned exit code {result.returncode}.\n{details}"
         return f"Validation failed: Python compilation returned exit code {result.returncode}.\n{details}"

@@ -29,27 +29,39 @@ class GitReview:
     def review(self) -> str:
         try:
             repository_root = self._run("rev-parse", "--show-toplevel").strip()
+            branch = self._run("branch", "--show-current").strip() or "(detached HEAD)"
+            status = self._run("status", "--short").strip()
+            staged_status = self._run("diff", "--cached", "--stat").strip()
+            unstaged_status = self._run("diff", "--stat").strip()
+            staged_diff = self._run("diff", "--cached")
+            unstaged_diff = self._run("diff")
         except (OSError, RuntimeError) as exc:
             return f"Git review unavailable: {exc}"
 
-        status = self._run("status", "--short").strip()
-        diff_stat = self._run("diff", "--stat").strip()
-        diff = self._run("diff")
-        if len(diff) > self.max_diff_chars:
-            diff = diff[:self.max_diff_chars] + "\n... diff truncated ..."
+        if len(staged_diff) > self.max_diff_chars:
+            staged_diff = staged_diff[:self.max_diff_chars] + "\n... diff truncated ..."
+        if len(unstaged_diff) > self.max_diff_chars:
+            unstaged_diff = unstaged_diff[:self.max_diff_chars] + "\n... diff truncated ..."
 
         if not status:
             status = "Working tree clean."
-        if not diff_stat:
-            diff_stat = "No unstaged tracked-file diff."
-        if not diff:
-            diff = "No unstaged diff available."
+        if not staged_status:
+            staged_status = "No staged changes."
+        if not unstaged_status:
+            unstaged_status = "No unstaged changes."
+        if not staged_diff:
+            staged_diff = "No staged diff available."
+        if not unstaged_diff:
+            unstaged_diff = "No unstaged diff available."
 
         return (
             f"Git repository: {repository_root}\n"
+            f"Branch: {branch}\n\n"
             f"Status:\n{status}\n\n"
-            f"Diff summary:\n{diff_stat}\n\n"
-            f"Unstaged diff:\n{diff}"
+            f"Staged changes:\n{staged_status}\n\n"
+            f"Staged diff:\n{staged_diff}\n\n"
+            f"Unstaged changes:\n{unstaged_status}\n\n"
+            f"Unstaged diff:\n{unstaged_diff}"
         )
 
     def commit(self, message: str, paths: list[str], confirm: bool = False) -> str:

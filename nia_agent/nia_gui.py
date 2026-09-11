@@ -119,6 +119,11 @@ def execute_unified_command(agent, cmd: str) -> str:
         agent.desktop.open_url(url)
         return f"Opened {url} in your default browser."
 
+    if c in {"check system status", "system status", "check diagnostics", "run diagnostics"}:
+        if hasattr(agent, "diagnostics"):
+            return agent.diagnostics.get_status_summary()
+        return "AI status unavailable."
+
     # 2. Calculator (English, Hinglish, Hindi)
     calc_keywords = ["calculator", "calc", "कैलकुलेटर", "hisaab", "hisab"]
     if any(k in c for k in calc_keywords):

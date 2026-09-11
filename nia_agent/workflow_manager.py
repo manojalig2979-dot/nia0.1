@@ -38,6 +38,31 @@ class WorkflowManager:
             del self.workflows[trigger]
             self.save()
 
+    def create_project_task_workflow(self, task_description: str):
+        if not task_description or not task_description.strip():
+            raise ValueError("Task description must not be empty.")
+
+        steps = [
+            {"step": "inspect_project", "purpose": "Inventory project files and entry points."},
+            {"step": "read_project_file", "purpose": "Read the most relevant source files for the task."},
+            {"step": "inspect_code_symbols", "purpose": "Understand classes, functions, imports, and line locations."},
+            {"step": "preview_multi_file_change", "purpose": "Prepare a combined preview of the intended edits."},
+            {"step": "apply_multi_file_change", "purpose": "Apply the approved change only after explicit approval."},
+            {"step": "validate_project", "purpose": "Run safe validation checks after the code change."},
+            {"step": "review_git_changes", "purpose": "Review the resulting Git state before committing."},
+            {"step": "commit_git_changes", "purpose": "Create a commit only after explicit approval."},
+        ]
+
+        return {
+            "task_description": task_description.strip(),
+            "steps": steps,
+            "required_approvals": [
+                "user_approval_before_apply",
+                "user_approval_before_commit",
+                "user_approval_before_push",
+            ],
+        }
+
     def get_match(self, user_command: str):
         cmd = user_command.lower().strip()
         for trig, data in self.workflows.items():
