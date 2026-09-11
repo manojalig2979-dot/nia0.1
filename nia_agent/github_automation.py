@@ -136,3 +136,50 @@ class GitHubAutomation:
         if result.returncode != 0:
             raise RuntimeError((result.stderr or result.stdout).strip() or "GitHub PR creation failed")
         return (result.stdout or result.stderr).strip() or "Pull request created successfully."
+
+    def inspect_pr_status(self, pr_number: str | None = None) -> str:
+        """Inspect the CI status and review comments for a GitHub pull request using the GitHub CLI."""
+        gh_path = shutil.which("gh")
+        if not gh_path:
+            raise FileNotFoundError("GitHub CLI 'gh' is not installed or not on PATH.")
+
+        output_parts = []
+
+        view_cmd = [gh_path, "pr", "status"] if not pr_number else [gh_path, "pr", "view", str(pr_number)]
+        view_result = subprocess.run(
+            view_cmd,
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if view_result.returncode == 0 and view_result.stdout.strip():
+            output_parts.append(f"--- PR Status/View ---\n{view_result.stdout.strip()}")
+        elif view_result.stderr:
+            output_parts.append(f"--- PR Status/View Error ---\n{view_result.stderr.strip()}")
+
+        checks_cmd = [gh_path, "pr", "checks"]
+        if pr_number:
+            checks_cmd.append(str(pr_number).strip())
+            
+        checks_result = subprocess.run(
+            checks_cmd,
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if checks_result.returncode == 0 and checks_result.stdout.strip():
+            output_parts.append(f"--- PR Checks ---\n{checks_result.stdout.strip()}")
+        elif checks_result.stderr:
+            output_parts.append(f"--- PR Checks Error ---\n{checks_result.stderr.strip()}")
+
+        if not output_parts:
+            return "No PR status or checks could be retrieved."
+
+        return "\n\n".join(output_parts)
+

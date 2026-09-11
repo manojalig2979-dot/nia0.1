@@ -465,6 +465,20 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "inspect_github_pr_status",
+                    "description": "Read-only inspection of GitHub Pull Request CI status and review comments using the GitHub CLI.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "pr_number": {"type": "string", "description": "Optional PR number to inspect. If omitted, inspects the PR for the current branch."}
+                        },
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -791,6 +805,11 @@ Your persona rules:
                 ))
             except (OSError, ValueError, RuntimeError, FileNotFoundError) as exc:
                 return f"GitHub PR create error: {exc}"
+        elif name == "inspect_github_pr_status":
+            try:
+                return str(self.github_automation.inspect_pr_status(args.get("pr_number")))
+            except (OSError, ValueError, RuntimeError, FileNotFoundError) as exc:
+                return f"GitHub PR status inspection error: {exc}"
         elif name == "inspect_code_symbols":
             relative_path = args.get("relative_path")
             try:
