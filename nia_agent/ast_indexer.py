@@ -139,6 +139,61 @@ class PythonASTIndexer:
         result["decorators"].sort(key=lambda item: item["line"])
         return result
 
+    def resolve_location(self, file_path: str | Path, line: int) -> dict:
+        """Resolve a source line to its narrowest enclosing class or function."""
+        path = Path(file_path)
+        if not path.is_absolute():
+            path = (self.root / path).resolve()
+        relative_file = self._safe_relative_path(path)
+        base = {"file": relative_file, "line": line, "symbol": None}
+
+        try:
+            source = path.read_text(encoding="utf-8")
+            tree = ast.parse(source, filename=str(path))
+        except (FileNotFoundError, UnicodeDecodeError, SyntaxError):
+            return base
+
+        classes = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+        functions = [
+            node for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ]
+        candidates = []
+        for node in classes + functions:
+            end_line = getattr(node, "end_lineno", node.lineno)
+            if node.lineno <= line <= end_line:
+                candidates.append((end_line - node.lineno, node))
+
+        if not candidates:
+            return base
+
+        _, node = min(candidates, key=lambda item: (item[0], -item[1].lineno))
+        if isinstance(node, ast.ClassDef):
+            return {
+                "file": relative_file,
+                "line": line,
+                "symbol": node.name,
+                "kind": "class",
+                "parent": None,
+                "symbol_line": node.lineno,
+            }
+
+        parent = None
+        for class_node in classes:
+            class_end = getattr(class_node, "end_lineno", class_node.lineno)
+            if class_node.lineno <= node.lineno <= class_end:
+                if parent is None or class_node.lineno > parent.lineno:
+                    parent = class_node
+
+        return {
+            "file": relative_file,
+            "line": line,
+            "symbol": node.name,
+            "kind": "method" if parent else "function",
+            "parent": parent.name if parent else None,
+            "symbol_line": node.lineno,
+        }
+
     def inspect_project(self, relative_path: str | None = None) -> dict:
         if relative_path:
             return self.inspect_file(relative_path)

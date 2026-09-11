@@ -180,7 +180,7 @@ Recommended files:
 
 ## Phase 3 Preview
 
-Phase 3 begins after the Phase 2 changes are reviewed and committed.
+Phase 3 is now in progress after the Phase 2 changes were reviewed, committed, and pushed.
 
 Phase 3 should begin only after Phase 2 has tests and stable validation.
 
@@ -204,6 +204,8 @@ Phase 3 should begin only after Phase 2 has tests and stable validation.
 ### Phase 3 Recommended Starting Task
 
 Start with read-only runtime error collection: capture application logs and terminal output, detect Python tracebacks, and return the related file and line before proposing any fix.
+
+Progress: bounded, read-only Python traceback extraction is implemented in `SystemDiagnostics.analyze_log_file()`, restricted to the diagnostics directory through `analyze_runtime_log()`, and exposed through the orchestrator. `collect_runtime_logs()` scans supported `.log` and `.txt` files with a file-count cap and returns structured failures only. `analyze_runtime_output()` classifies captured terminal text for tracebacks, missing dependencies, and timeouts without executing commands. `PythonASTIndexer.resolve_location()` and the `link_runtime_failure` tool connect a failure line to its nearest Python symbol. `CodeWorkspace.preview_runtime_fix()` and the `preview_runtime_fix` tool generate validated diffs with failure context and an explicit approval gate; they never write or commit changes. `validate_proposed_change()` and `validate_runtime_fix` compile proposed Python content in memory before any apply step. `apply_runtime_fix` requires explicit confirmation, applies through the existing backup/rollback writer, and runs project validation afterward. `review_runtime_fix` performs a read-only branch/staged/unstaged Git review after validation. `commit_runtime_fix` creates a local commit only after a separate explicit approval; push remains a separate approval. Focused regression tests cover parsing, dispatch, collection, classification, symbol linking, fix previews, validation, application, Git review, commit gating, and path safety.
 
 ### Advanced Automation
 

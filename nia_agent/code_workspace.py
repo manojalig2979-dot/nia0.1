@@ -142,6 +142,62 @@ class CodeWorkspace:
             "diff": combined_diff,
         }
 
+    def preview_runtime_fix(self, failure: dict, plan: dict) -> dict:
+        """Build an approval-required fix preview for a detected runtime failure."""
+        if not isinstance(failure, dict) or not failure.get("found"):
+            raise ValueError("A detected runtime failure is required before proposing a fix.")
+
+        validated_plan = self.validate_change_plan(plan)
+        context_keys = ("category", "file", "line", "symbol", "kind", "parent")
+        failure_context = {
+            key: failure[key]
+            for key in context_keys
+            if key in failure and failure[key] is not None
+        }
+        return {
+            "approval_required": True,
+            "failure": failure_context,
+            "plan": validated_plan,
+        }
+
+    def validate_proposed_change(self, plan: dict) -> dict:
+        """Validate an exact change plan without writing its proposed content."""
+        self.validate_change_plan(plan)
+        checks = []
+        for change in plan["changes"]:
+            relative_path = str(change.get("relative_path", ""))
+            current_text = self.read_file(relative_path)
+            proposed_text = current_text.replace(change["old_text"], change["new_text"], 1)
+            if Path(relative_path).suffix.lower() != ".py":
+                continue
+
+            check = {
+                "path": relative_path,
+                "check": "python_compile",
+                "passed": True,
+            }
+            try:
+                compile(proposed_text, relative_path, "exec")
+            except SyntaxError as exc:
+                check["passed"] = False
+                check["error"] = f"SyntaxError: {exc.msg} (line {exc.lineno}, column {exc.offset})"
+            checks.append(check)
+
+        return {"valid": all(check["passed"] for check in checks), "checks": checks}
+
+    def apply_runtime_fix(self, failure: dict, plan: dict, confirm: bool = False) -> str:
+        """Apply a validated runtime fix only after explicit confirmation."""
+        if not isinstance(failure, dict) or not failure.get("found"):
+            raise ValueError("A detected runtime failure is required before applying a fix.")
+        if not confirm:
+            raise ValueError("Set confirm=true only after reviewing preview_runtime_fix.")
+
+        self.validate_change_plan(plan)
+        validation = self.validate_proposed_change(plan)
+        if not validation["valid"]:
+            raise ValueError(f"Proposed runtime fix failed validation: {validation['checks']}")
+        return self.apply_multi_change(plan["changes"], confirm=True)
+
     def apply_change(
         self,
         relative_path: str,

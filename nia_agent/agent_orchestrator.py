@@ -294,6 +294,144 @@ class NiaAgentOrchestrator:
             {
                 "type": "function",
                 "function": {
+                    "name": "commit_runtime_fix",
+                    "description": "Create a local Git commit for a reviewed and validated runtime fix after explicit approval. Never pushes.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "message": {"type": "string"},
+                            "paths": {"type": "array", "items": {"type": "string"}},
+                            "confirm": {"type": "boolean"}
+                        },
+                        "required": ["message", "paths", "confirm"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "review_runtime_fix",
+                    "description": "Read-only Git review after a runtime fix has been validated. Shows branch, staged, and unstaged changes; never stages, commits, or pushes.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "apply_runtime_fix",
+                    "description": "Apply a reviewed runtime fix after explicit confirmation, then run project validation. Never commits or pushes.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "failure": {"type": "object"},
+                            "plan": {"type": "object"},
+                            "confirm": {"type": "boolean"}
+                        },
+                        "required": ["failure", "plan", "confirm"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "validate_runtime_fix",
+                    "description": "Validate a proposed runtime fix without writing files. Currently checks exact replacements and compiles proposed Python content in memory.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "plan": {"type": "object"}
+                        },
+                        "required": ["plan"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "preview_runtime_fix",
+                    "description": "Create a read-only, approval-required diff preview for a detected runtime failure. Never applies or commits the proposed fix.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "failure": {"type": "object"},
+                            "plan": {"type": "object"}
+                        },
+                        "required": ["failure", "plan"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "link_runtime_failure",
+                    "description": "Read-only link from a runtime failure file and line to the nearest Python class or function symbol before proposing a fix.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "Project-relative Python file path."},
+                            "line": {"type": "integer", "minimum": 1}
+                        },
+                        "required": ["path", "line"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "analyze_runtime_output",
+                    "description": "Classify captured terminal output for Python tracebacks, missing dependencies, and timeouts without executing commands or returning raw output.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "output": {"type": "string"},
+                            "source": {"type": "string", "description": "Origin label such as terminal or application log."}
+                        },
+                        "required": ["output"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "collect_runtime_logs",
+                    "description": "Read-only scan of recent NIA diagnostics log files for Python tracebacks. Returns structured failures only, never raw log contents.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "max_files": {"type": "integer", "minimum": 1, "maximum": 20}
+                        },
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "analyze_runtime_log",
+                    "description": "Read-only analysis of a diagnostics log beneath NIA's log directory. Returns Python traceback details without returning unrelated log content.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "Log filename relative to NIA's diagnostics log directory."}
+                        },
+                        "required": ["path"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "inspect_project",
                     "description": "Read-only inventory of the configured project: source files, extensions, sizes, and ignored directories.",
                     "parameters": {
@@ -535,6 +673,73 @@ Your persona rules:
             return self.desktop.system_power_control(args.get("action"))
         elif name == "remember_fact":
             return self.memory.remember(args.get("topic", "general"), args.get("fact"))
+        elif name == "analyze_runtime_log":
+            try:
+                return str(self.diagnostics.analyze_runtime_log(args.get("path", "")))
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                return f"Runtime log analysis error: {exc}"
+        elif name == "collect_runtime_logs":
+            try:
+                max_files = min(max(int(args.get("max_files", 10)), 1), 20)
+                return str(self.diagnostics.collect_runtime_logs(max_files=max_files))
+            except (ValueError, OSError, TypeError) as exc:
+                return f"Runtime log collection error: {exc}"
+        elif name == "analyze_runtime_output":
+            try:
+                return str(self.diagnostics.analyze_runtime_output(
+                    args.get("output", ""),
+                    args.get("source", "terminal"),
+                ))
+            except (ValueError, TypeError) as exc:
+                return f"Runtime output analysis error: {exc}"
+        elif name == "link_runtime_failure":
+            try:
+                return str(self.ast_indexer.resolve_location(
+                    args.get("path", ""),
+                    int(args.get("line", 0)),
+                ))
+            except (ValueError, TypeError, OSError) as exc:
+                return f"Runtime failure linking error: {exc}"
+        elif name == "preview_runtime_fix":
+            try:
+                return str(self.code_workspace.preview_runtime_fix(
+                    args.get("failure", {}),
+                    args.get("plan", {}),
+                ))
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                return f"Runtime fix preview error: {exc}"
+        elif name == "validate_runtime_fix":
+            try:
+                return str(self.code_workspace.validate_proposed_change(args.get("plan", {})))
+            except (FileNotFoundError, ValueError, OSError) as exc:
+                return f"Runtime fix validation error: {exc}"
+        elif name == "apply_runtime_fix":
+            try:
+                if not bool(args.get("confirm", False)):
+                    raise ValueError("Set confirm=true only after reviewing the runtime fix preview.")
+                apply_result = self.code_workspace.apply_runtime_fix(
+                    args.get("failure", {}),
+                    args.get("plan", {}),
+                    confirm=True,
+                )
+                validation_result = self.project_validator.validate()
+                return str({"apply": apply_result, "validation": validation_result})
+            except (FileNotFoundError, ValueError, OSError, subprocess.TimeoutExpired) as exc:
+                return f"Runtime fix apply error: {exc}"
+        elif name == "review_runtime_fix":
+            try:
+                return self.git_review.review()
+            except (OSError, subprocess.TimeoutExpired, RuntimeError) as exc:
+                return f"Runtime fix Git review error: {exc}"
+        elif name == "commit_runtime_fix":
+            try:
+                return self.git_review.commit(
+                    args.get("message", ""),
+                    args.get("paths", []),
+                    bool(args.get("confirm", False)),
+                )
+            except (OSError, RuntimeError, ValueError) as exc:
+                return f"Runtime fix commit error: {exc}"
         elif name == "inspect_project":
             return self.project_indexer.format_summary()
         elif name == "inspect_code_symbols":
