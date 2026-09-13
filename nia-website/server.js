@@ -300,7 +300,39 @@ app.post('/api/contact', (req, res) => {
   saveJsonDb(CONTACTS_DB_PATH, contacts);
 
   console.log(`[NDTechHub] Received contact inquiry from ${name} (${email}) - Type: ${inquiry_type}`);
+
+  // Optional instant webhook notification (e.g. Discord, Telegram, Slack, or Make/Zapier)
+  const webhookUrl = process.env.NOTIFICATION_WEBHOOK_URL || process.env.CONTACT_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `📬 **New Contact Inquiry on Nia 1.0**\n**From:** ${name} (${email})\n**Category:** ${inquiry_type}\n**Subject:** ${subject}\n**Message:**\n${message}`
+        })
+      }).catch(err => console.error('[Notification Webhook]', err.message));
+    } catch (e) {}
+  }
+
   return res.json({ success: true, message: 'Message received successfully', contact_id: contactId });
+});
+
+// Admin Inquiries Dashboard & API
+app.get('/admin/inquiries', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin-inquiries.html'));
+});
+
+app.get('/api/admin/contacts', (req, res) => {
+  const secret = req.query.secret || req.headers['x-admin-secret'];
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'ndtechhub_admin_secret_2026';
+
+  if (secret !== ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const contacts = loadJsonDb(CONTACTS_DB_PATH);
+  res.json({ contacts });
 });
 
 // Legal, Privacy & Policy Pages
