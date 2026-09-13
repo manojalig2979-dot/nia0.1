@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1085,38 +1086,8 @@ cd "nia0.1"</pre>
     </div>
   </section>
 
-  <!-- CTA / DOWNLOAD HERO BANNER -->
-  <section id="download" class="py-20 relative">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <div class="glassmorphism p-12 rounded-3xl border border-cyan-500/40 relative overflow-hidden glow-cyan">
-        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-10 -top-10 w-60 h-60 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-        <h2 class="text-3xl sm:text-5xl font-extrabold text-white">Claim Your Desktop Sovereignty</h2>
-        <p class="mt-4 text-slate-300 max-w-xl mx-auto text-sm sm:text-base">
-          Get Nia 1.0 today. Free, open-source, and engineered by NDTechHub for developer privacy and deterministic performance.
-        </p>
-
-        <div class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <button class="open-download-modal w-full sm:w-auto inline-flex items-center justify-center space-x-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-bold px-8 py-4 rounded-xl hover:opacity-95 transition glow-cyan text-base">
-            <i class="fa-solid fa-download"></i>
-            <span>Download Standalone Installer (.exe)</span>
-          </button>
-          
-          <button class="open-buy-modal w-full sm:w-auto inline-flex items-center justify-center space-x-2 glassmorphism hover:bg-white/10 text-white font-medium px-8 py-4 rounded-xl transition border border-cyan-500/30 hover:border-accentCyan" data-tier="test_flight" data-price="₹99 / $1">
-            <i class="fa-solid fa-rocket text-accentCyan"></i>
-            <span>Start 7-Day Test Flight (₹99)</span>
-          </button>
-        </div>
-
-        <div class="mt-10 pt-8 border-t border-white/10 text-xs text-slate-400 grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
-          <div><span class="text-slate-500">Platform:</span> <span class="text-white">Windows 10 / 11 (64-bit)</span></div>
-          <div><span class="text-slate-500">Release:</span> <span class="text-accentCyan">v1.0.0 Stable</span></div>
-          <div><span class="text-slate-500">Architecture:</span> <span class="text-purple-400">Local Supervisor DAG</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- ANCHOR TARGET FOR DOWNLOAD -->
+  <div id="download"></div>
 
   <!-- DOWNLOAD MODAL -->
   <div id="download-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
@@ -1237,34 +1208,172 @@ cd "nia0.1"</pre>
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-white/10 py-12 bg-black/60">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-      <div class="flex items-center space-x-3">
-        <div class="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-purple-600 flex items-center justify-center font-bold text-black text-sm">
-          N
-        </div>
-        <div>
-          <span class="text-base font-bold text-white">NDTechHub</span>
-          <p class="text-xs text-slate-400">Autonomous Systems & Sovereign AI Agent Runtime</p>
-        </div>
-      </div>
+  <!-- =========================================================
+       NIA 1.0 COMMERCIAL FOOTER
+       ========================================================= -->
+  <footer class="nia-footer">
 
-      <div class="flex items-center space-x-6 text-sm text-slate-400 font-medium">
-        <a href="#why-nia" class="hover:text-accentCyan transition">Why Nia</a>
-        <a href="#simulator" class="hover:text-accentCyan transition">Simulator</a>
-        <a href="#comparison" class="hover:text-accentCyan transition">Comparison</a>
-        <a href="#quickstart" class="hover:text-accentCyan transition">Install</a>
-        <a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank" class="hover:text-accentCyan transition">GitHub</a>
-      </div>
+    <!-- Glow Backdrop Accents -->
+    <div class="footer-glow glow-left"></div>
+    <div class="footer-glow glow-right"></div>
 
-      <p class="text-xs text-slate-500 font-mono">
-        &copy; 2026 NDTechHub. All rights reserved.
-      </p>
+    <!-- Pre-Footer CTA Card -->
+    <div class="footer-pre-cta">
+      <div class="pre-cta-content">
+        <span class="badge-pulse">
+          <span class="dot"></span> NIA 1.0 Enterprise & Pro Ready
+        </span>
+        <h2>Ready to experience autonomous personal intelligence?</h2>
+        <p>Deploy your multi-agent digital human locally or over private cloud infrastructure in minutes.</p>
+      </div>
+      <div class="pre-cta-actions">
+        <button class="btn-primary-neon open-buy-modal" data-tier="test_flight" data-price="₹99 / $1" style="cursor: pointer; border: none;">
+          <span>Get NIA 1.0 Now</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+        <a href="#simulator" class="btn-secondary-glass">
+          <i data-lucide="play-circle"></i>
+          <span>Watch Demo</span>
+        </a>
+      </div>
     </div>
+
+    <!-- Main Multi-Column Footer -->
+    <div class="footer-main-container">
+      
+      <!-- Column 1: Brand & Parent Company -->
+      <div class="footer-col brand-col">
+        <div class="brand-header">
+          <div class="brand-logo-hex">
+            <svg viewBox="0 0 24 24" fill="none" class="brand-svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#nia-foot-grad)" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="url(#nia-foot-grad)" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="url(#nia-foot-grad)" stroke-width="2" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="nia-foot-grad" x1="2" y1="2" x2="22" y2="22">
+                  <stop stop-color="#00f2fe"/>
+                  <stop offset="1" stop-color="#7f00ff"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-title">NIA <span class="version-tag">v1.0</span></span>
+        </div>
+
+        <p class="brand-desc">
+          An autonomous personal AI agent built with modular tool orchestration, real-time voice synthesis, and digital-human presence.
+        </p>
+
+        <!-- Live Operational Indicator -->
+        <div class="system-status-badge">
+          <span class="status-indicator-ping"></span>
+          <span class="status-indicator-dot"></span>
+          <span>All AI Core Pipelines Operational</span>
+        </div>
+
+        <!-- Social / Community Channels -->
+        <div class="social-links">
+          <a href="https://github.com/manojalig2979-dot/nia0.1" aria-label="GitHub Repository" target="_blank"><i data-lucide="github"></i></a>
+          <a href="https://x.com" aria-label="X Twitter" target="_blank"><i data-lucide="twitter"></i></a>
+          <a href="https://discord.com" aria-label="Discord Community" target="_blank"><i data-lucide="message-square"></i></a>
+          <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank"><i data-lucide="linkedin"></i></a>
+        </div>
+      </div>
+
+      <!-- Column 2: Architecture & Features -->
+      <div class="footer-col">
+        <h3 class="col-title">Agent Architecture</h3>
+        <ul class="footer-links">
+          <li><a href="#features">Supervisor DAG Orchestration</a></li>
+          <li><a href="#features">Neural Low-Latency Voice Engine</a></li>
+          <li><a href="#features">3D Avatar Lip-Sync & Visemes</a></li>
+          <li><a href="#features">Dynamic Python Tool Registry</a></li>
+          <li><a href="#features">Persistent Vector Knowledge Graph</a></li>
+          <li><a href="#features">On-Device Local Model Runners</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Developers & Ecosystem -->
+      <div class="footer-col">
+        <h3 class="col-title">Developers & SDK</h3>
+        <ul class="footer-links">
+          <li><a href="#quickstart">API Reference & OpenAPI</a></li>
+          <li><a href="#quickstart">Python Desktop SDK</a></li>
+          <li><a href="#quickstart">Real-Time Voice WebSockets</a></li>
+          <li><a href="#features">Community Skills Marketplace</a></li>
+          <li><a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank">Changelog & Benchmarks</a></li>
+          <li><a href="#status">Global Node Uptime</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Enterprise & Trust -->
+      <div class="footer-col">
+        <h3 class="col-title">Enterprise & Trust</h3>
+        <ul class="footer-links">
+          <li><a href="#why-nia">Enterprise Air-Gapped Deployments</a></li>
+          <li><a href="#why-nia">Zero-Data-Retention Policy</a></li>
+          <li><a href="#why-nia">Hardware Acceleration Guides</a></li>
+          <li><a href="#why-nia">Privacy & Local Data Storage</a></li>
+          <li><a href="#pricing">Licensing & Terms of Use</a></li>
+          <li><a href="mailto:support@ndtechhub.com">Commercial Licensing Sales</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 5: Stay Updated (Newsletter) -->
+      <div class="footer-col newsletter-col">
+        <h3 class="col-title">AI Updates & Patches</h3>
+        <p class="newsletter-desc">Subscribe to get firmware updates, new model integrations, and agent release notes.</p>
+        
+        <form class="footer-form" onsubmit="event.preventDefault(); alert('Subscribed to NIA 1.0 updates!');">
+          <div class="input-wrapper">
+            <i data-lucide="mail" class="form-icon"></i>
+            <input type="email" placeholder="developer@company.com" required />
+          </div>
+          <button type="submit" class="btn-subscribe">
+            <span>Subscribe</span>
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </form>
+        <span class="form-subtext"><i data-lucide="shield-check"></i> Local-first encryption. No spam.</span>
+      </div>
+
+    </div>
+
+    <!-- Bottom Legal, Copyright & Corporate Ownership -->
+    <div class="footer-bottom">
+      <div class="bottom-container">
+        <div class="bottom-left">
+          <p>
+            &copy; 2026 <strong>NIA AI</strong>. Developed by 
+            <a href="https://ndtechhub.com" target="_blank" class="corp-link">NDTechHub</a>, 
+            the AI & Technology Division of 
+            <a href="https://navdivagroup.com" target="_blank" class="corp-link">NAVDIVA Group</a>.
+          </p>
+        </div>
+
+        <div class="bottom-badges">
+          <span class="security-chip"><i data-lucide="lock"></i> End-to-End Encrypted</span>
+          <span class="security-chip"><i data-lucide="cpu"></i> CUDA & Apple Silicon Ready</span>
+        </div>
+
+        <div class="bottom-right">
+          <a href="#why-nia">Privacy Notice</a>
+          <span class="divider">•</span>
+          <a href="#pricing">Terms of Service</a>
+          <span class="divider">•</span>
+          <a href="#why-nia">Telemetry Settings</a>
+        </div>
+      </div>
+    </div>
+
   </footer>
 
   <!-- Core JavaScript -->
   <script src="assets/js/main.js"></script>
+  <script>
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>
