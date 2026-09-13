@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['nia_avatar.jpg'],
+    icon=['nia_icon.ico'],
 )

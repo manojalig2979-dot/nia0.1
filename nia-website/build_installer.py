@@ -21,7 +21,7 @@ def package_nia():
         print(f"[*] Found pre-built executable at: {existing_agent_binary}")
         shutil.copy2(existing_agent_binary, target_binary)
         size_mb = os.path.getsize(target_binary) / (1024 * 1024)
-        print(f"[✓] Successfully deployed installer to: {target_binary} ({size_mb:.2f} MB)")
+        print(f"[+] Successfully deployed installer to: {target_binary} ({size_mb:.2f} MB)")
         return
 
     # 2. If not present, compile from nia_agent
@@ -56,7 +56,7 @@ def package_nia():
         if os.path.exists(built_binary):
             shutil.copy2(built_binary, target_binary)
             size_mb = os.path.getsize(target_binary) / (1024 * 1024)
-            print(f"[✓] Deployment binary ready: {target_binary} ({size_mb:.2f} MB)")
+            print(f"[+] Deployment binary ready: {target_binary} ({size_mb:.2f} MB)")
         else:
             print(f"[!] Warning: Built binary not found at {built_binary}")
     except Exception as e:
