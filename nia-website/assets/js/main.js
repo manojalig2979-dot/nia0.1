@@ -405,4 +405,85 @@ document.addEventListener("DOMContentLoaded", () => {
       mobileMenu.classList.toggle("hidden");
     });
   }
+
+  // --- CLEAN URL ROUTING (NO '#' IN BROWSER URL) ---
+  const routeSectionMap = {
+    '/why-nia': 'why-nia',
+    '/simulator': 'simulator',
+    '/features': 'features',
+    '/about': 'about',
+    '/pricing': 'pricing',
+    '/faq': 'faq',
+    '/contact': 'contact',
+    '/testimonials': 'testimonials',
+    '/comparison': 'comparison',
+    '/quickstart': 'quickstart',
+    '/status': 'status'
+  };
+
+  function scrollToSection(sectionId, updateUrlPath) {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (updateUrlPath) {
+        history.pushState(null, '', updateUrlPath);
+      }
+      // Update active bento pills
+      document.querySelectorAll('.bento-pill').forEach(pill => {
+        const href = pill.getAttribute('href');
+        if (href === updateUrlPath) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  // Handle clicks on navigation links
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    // If link is a clean route
+    if (routeSectionMap[href]) {
+      e.preventDefault();
+      scrollToSection(routeSectionMap[href], href);
+      if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+      }
+      return;
+    }
+
+    // If link is an old #hash anchor, convert to clean URL
+    if (href.startsWith('#')) {
+      const sectionId = href.substring(1);
+      const matchingPath = Object.keys(routeSectionMap).find(k => routeSectionMap[k] === sectionId);
+      if (matchingPath) {
+        e.preventDefault();
+        scrollToSection(sectionId, matchingPath);
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.add('hidden');
+        }
+      }
+    }
+  });
+
+  // Handle direct initial load of clean URL (e.g. user visits /pricing or /about directly)
+  const currentPath = window.location.pathname.replace(/\/$/, "");
+  if (routeSectionMap[currentPath]) {
+    setTimeout(() => {
+      scrollToSection(routeSectionMap[currentPath], null);
+    }, 180);
+  }
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', () => {
+    const path = window.location.pathname.replace(/\/$/, "");
+    if (routeSectionMap[path]) {
+      scrollToSection(routeSectionMap[path], null);
+    }
+  });
 });

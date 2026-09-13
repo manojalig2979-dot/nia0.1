@@ -320,17 +320,15 @@ app.get('/telemetry', (req, res) => {
   res.sendFile(path.join(__dirname, 'telemetry.html'));
 });
 
-// Friendly redirect routes
-app.get('/about', (req, res) => {
-  res.redirect('/#about');
-});
-
-app.get('/contact', (req, res) => {
-  res.redirect('/#contact');
-});
-
-app.get('/status', (req, res) => {
-  res.redirect('/#status');
+// Clean SPA Section URLs (No '#' required in browser URL)
+const cleanSectionRoutes = [
+  '/about', '/contact', '/pricing', '/faq', '/features',
+  '/simulator', '/why-nia', '/testimonials', '/comparison', '/quickstart', '/status'
+];
+cleanSectionRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
 });
 
 // Single Page Application fallback

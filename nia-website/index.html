@@ -39,66 +39,66 @@
 </head>
 <body class="bg-brandDark text-slate-200 font-sans antialiased selection:bg-accentCyan selection:text-black bg-grid-pattern">
 
-  <!-- NAVIGATION -->
-  <header class="liquid-glass-header">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <!-- Logo -->
-      <a href="#" class="flex items-center space-x-3 group">
-        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 p-[2px] shadow-lg group-hover:glow-cyan transition duration-300">
-          <div class="w-full h-full bg-brandDark rounded-[10px] flex items-center justify-center font-bold text-accentCyan text-xl">
+  <!-- NAVIGATION: BENTO HUD DOCK -->
+  <header class="bento-header-wrapper">
+    <div class="bento-navbar-grid">
+      <!-- Bento Pod 1: Brand -->
+      <a href="/" class="bento-brand-pod group" aria-label="NIA 1.0 Home">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 p-[2px] shadow-lg group-hover:glow-cyan transition duration-300">
+          <div class="w-full h-full bg-brandDark rounded-[9px] flex items-center justify-center font-bold text-accentCyan text-lg">
             N
           </div>
         </div>
         <div>
-          <div class="flex items-center space-x-2">
-            <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-accentCyan transition">Nia</span>
-            <span class="text-[10px] font-mono font-bold text-accentCyan bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">v1.0.0</span>
+          <div class="flex items-center space-x-1.5">
+            <span class="text-base font-black tracking-tight text-white group-hover:text-accentCyan transition">Nia</span>
+            <span class="text-[9px] font-mono font-bold text-accentCyan bg-cyan-500/10 border border-cyan-500/30 px-1.5 py-0.5 rounded-full">v1.0.0</span>
           </div>
-          <p class="text-[10px] tracking-widest uppercase text-slate-400 font-mono">By NDTechHub</p>
+          <p class="text-[9px] tracking-wider uppercase text-slate-400 font-mono">By NDTechHub</p>
         </div>
       </a>
 
-      <!-- Desktop Nav -->
-      <nav class="hidden lg:flex items-center space-x-2 text-sm font-medium text-slate-300">
-        <a href="#why-nia" class="liquid-nav-link">Why Nia</a>
-        <a href="#simulator" class="liquid-nav-link">Live DAG Demo</a>
-        <a href="#features" class="liquid-nav-link">Capabilities</a>
-        <a href="#about" class="liquid-nav-link">About Us</a>
-        <a href="#pricing" class="liquid-nav-link text-accentCyan font-bold">Pricing & Test Flight</a>
-        <a href="#faq" class="liquid-nav-link">FAQ</a>
-        <a href="#contact" class="liquid-nav-link">Contact</a>
+      <!-- Bento Pod 2: Segmented Nav Links (Clean URLs) -->
+      <nav class="bento-links-pod" aria-label="Main Navigation">
+        <a href="/why-nia" class="bento-pill">Why Nia</a>
+        <a href="/simulator" class="bento-pill">Live Demo</a>
+        <a href="/features" class="bento-pill">Capabilities</a>
+        <a href="/about" class="bento-pill">About</a>
+        <a href="/pricing" class="bento-pill bento-pill-highlight">Pricing</a>
+        <a href="/faq" class="bento-pill">FAQ</a>
+        <a href="/contact" class="bento-pill">Contact</a>
       </nav>
 
-      <!-- Action Buttons -->
-      <div class="flex items-center space-x-3">
-        <button class="open-buy-modal hidden sm:inline-flex items-center space-x-2 text-xs font-bold text-slate-200 hover:text-white glassmorphism px-3.5 py-2.5 rounded-full border border-cyan-500/30 hover:border-accentCyan transition shadow-lg" data-tier="test_flight" data-price="₹99 / $1">
+      <!-- Bento Pod 3: Actions -->
+      <div class="bento-actions-pod">
+        <button class="open-buy-modal hidden sm:inline-flex items-center space-x-1.5 text-xs font-bold text-slate-200 hover:text-white glassmorphism px-3.5 py-2.5 rounded-xl border border-cyan-500/30 hover:border-accentCyan transition shadow-lg" data-tier="test_flight" data-price="₹99 / $1">
           <i class="fa-solid fa-rocket text-accentCyan"></i>
           <span>Test Flight ₹99</span>
         </button>
 
-        <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black px-5 py-2.5 rounded-full font-bold text-sm hover:opacity-95 transition glow-cyan shadow-lg">
+        <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm hover:opacity-95 transition glow-cyan shadow-lg">
           <i class="fa-solid fa-download"></i>
           <span>Get Nia 1.0</span>
         </button>
 
         <!-- Mobile Menu Trigger -->
-        <button id="mobile-menu-btn" class="lg:hidden text-slate-300 hover:text-white p-2" aria-label="Toggle menu">
-          <i class="fa-solid fa-bars text-xl"></i>
+        <button id="mobile-menu-btn" class="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl bg-white/5 border border-white/10" aria-label="Toggle menu">
+          <i class="fa-solid fa-bars text-lg"></i>
         </button>
       </div>
     </div>
 
     <!-- Mobile Navigation Drawer -->
-    <div id="mobile-menu" class="hidden lg:hidden glassmorphism border-b border-white/10 px-6 py-4 space-y-3 text-sm font-medium">
-      <a href="#why-nia" class="block text-slate-300 hover:text-accentCyan">Why Nia</a>
-      <a href="#simulator" class="block text-slate-300 hover:text-accentCyan">Live DAG Demo</a>
-      <a href="#comparison" class="block text-slate-300 hover:text-accentCyan">Nia vs Cloud</a>
-      <a href="#features" class="block text-slate-300 hover:text-accentCyan">Capabilities</a>
-      <a href="#about" class="block text-slate-300 hover:text-accentCyan">About NDTechHub</a>
-      <a href="#testimonials" class="block text-slate-300 hover:text-accentCyan">Testimonials</a>
-      <a href="#pricing" class="block text-accentCyan hover:underline font-bold">Pricing & Test Flight</a>
-      <a href="#faq" class="block text-slate-300 hover:text-accentCyan">FAQ</a>
-      <a href="#contact" class="block text-slate-300 hover:text-accentCyan">Contact Us</a>
+    <div id="mobile-menu" class="hidden lg:hidden mt-2 p-4 rounded-2xl glassmorphism border border-white/10 space-y-2 text-sm font-medium shadow-2xl">
+      <a href="/why-nia" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Why Nia</a>
+      <a href="/simulator" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Live DAG Demo</a>
+      <a href="/comparison" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Nia vs Cloud</a>
+      <a href="/features" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Capabilities</a>
+      <a href="/about" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">About NDTechHub</a>
+      <a href="/testimonials" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Testimonials</a>
+      <a href="/pricing" class="block px-3 py-2 rounded-lg text-accentCyan hover:bg-white/5 font-bold">Pricing & Test Flight</a>
+      <a href="/faq" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">FAQ</a>
+      <a href="/contact" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-accentCyan">Contact Us</a>
     </div>
   </header>
 
@@ -1369,7 +1369,7 @@ cd "nia0.1"</pre>
         <div class="lg:col-span-5 space-y-4">
           
           <!-- Card 1: Sales & Licensing -->
-          <div class="glassmorphism-card p-6 rounded-2xl border border-white/10">
+          <div class="neumorph-info-tile p-6">
             <div class="flex items-center space-x-3 mb-2">
               <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-accentCyan flex items-center justify-center">
                 <i data-lucide="briefcase" class="w-5 h-5"></i>
@@ -1387,7 +1387,7 @@ cd "nia0.1"</pre>
           </div>
 
           <!-- Card 2: Developer Support -->
-          <div class="glassmorphism-card p-6 rounded-2xl border border-white/10">
+          <div class="neumorph-info-tile p-6">
             <div class="flex items-center space-x-3 mb-2">
               <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
                 <i data-lucide="wrench" class="w-5 h-5"></i>
@@ -1405,7 +1405,7 @@ cd "nia0.1"</pre>
           </div>
 
           <!-- Card 3: Corporate HQ -->
-          <div class="glassmorphism-card p-6 rounded-2xl border border-white/10">
+          <div class="neumorph-info-tile p-6">
             <div class="flex items-center space-x-3 mb-2">
               <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
                 <i data-lucide="map-pin" class="w-5 h-5"></i>
@@ -1432,17 +1432,17 @@ cd "nia0.1"</pre>
           </div>
 
           <!-- Live SLA Badge -->
-          <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-3 text-xs text-emerald-300">
+          <div class="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 flex items-center space-x-3 text-xs text-emerald-300 shadow-inner">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>Engineering team responds within 12–24 business hours.</span>
           </div>
 
         </div>
 
-        <!-- Right: Interactive Contact Form (lg:col-span-7) -->
-        <div class="lg:col-span-7 glassmorphism-card p-8 sm:p-10 rounded-3xl border border-cyan-500/30 glow-cyan">
+        <!-- Right: Interactive Contact Form (lg:col-span-7) with Neumorphic Controls -->
+        <div class="lg:col-span-7 neumorph-card p-8 sm:p-10 relative">
           <div class="mb-6">
-            <h3 class="text-2xl font-bold text-white">Send Us a Direct Message</h3>
+            <h3 class="text-2xl font-black text-white">Send Us a Direct Message</h3>
             <p class="text-xs text-slate-400 mt-1">Fill in your inquiry details below. Our team receives your submission directly.</p>
           </div>
 
@@ -1450,17 +1450,17 @@ cd "nia0.1"</pre>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Your Name *</label>
-                <input type="text" id="contact-name" required placeholder="Alex Mercer" class="contact-input" />
+                <input type="text" id="contact-name" required placeholder="Alex Mercer" class="neumorph-input" />
               </div>
               <div>
                 <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Email Address *</label>
-                <input type="email" id="contact-email" required placeholder="alex@company.com" class="contact-input" />
+                <input type="email" id="contact-email" required placeholder="alex@company.com" class="neumorph-input" />
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Inquiry Type *</label>
-              <select id="contact-inquiry-type" class="contact-input" style="background-color: #0d1117;">
+              <select id="contact-inquiry-type" class="neumorph-input" style="background-color: #07090f;">
                 <option value="test_flight">₹99 Pro Test Flight / License Key</option>
                 <option value="enterprise">Enterprise Air-Gapped Deployment</option>
                 <option value="custom_dag">Custom Python Tool / DAG Integration</option>
@@ -1472,22 +1472,22 @@ cd "nia0.1"</pre>
 
             <div>
               <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Subject *</label>
-              <input type="text" id="contact-subject" required placeholder="Question about Nia 1.0 setup" class="contact-input" />
+              <input type="text" id="contact-subject" required placeholder="Question about Nia 1.0 setup" class="neumorph-input" />
             </div>
 
             <div>
               <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Your Message *</label>
-              <textarea id="contact-message" rows="4" required placeholder="Tell us how we can assist you..." class="contact-input"></textarea>
+              <textarea id="contact-message" rows="4" required placeholder="Tell us how we can assist you..." class="neumorph-input"></textarea>
             </div>
 
-            <button type="submit" id="contact-submit-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-extrabold text-sm hover:opacity-95 transition glow-cyan flex items-center justify-center space-x-2">
+            <button type="submit" id="contact-submit-btn" class="neumorph-btn">
               <i data-lucide="send" class="w-4 h-4"></i>
               <span>Send Message to NDTechHub</span>
             </button>
           </form>
 
           <!-- Contact Feedback Card -->
-          <div id="contact-success-msg" class="hidden p-6 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-2 mt-4">
+          <div id="contact-success-msg" class="hidden p-6 rounded-2xl bg-emerald-950/50 border border-emerald-500/40 text-center space-y-2 mt-4 shadow-inner">
             <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mb-1">
               <i data-lucide="check-circle" class="w-6 h-6"></i>
             </div>
@@ -1497,7 +1497,7 @@ cd "nia0.1"</pre>
             </p>
           </div>
 
-          <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+          <div class="mt-5 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
             <span class="flex items-center space-x-1"><i data-lucide="lock" class="w-3 h-3 text-cyan-400"></i><span>Encrypted Communication</span></span>
             <span>Zero Third-Party Scraping</span>
           </div>
@@ -1733,12 +1733,12 @@ cd "nia0.1"</pre>
       <div class="footer-col">
         <h3 class="col-title">Agent Architecture</h3>
         <ul class="footer-links">
-          <li><a href="#simulator">Supervisor DAG Orchestration</a></li>
-          <li><a href="#features">Neural Low-Latency Voice Engine</a></li>
-          <li><a href="#features">3D Avatar Lip-Sync & Visemes</a></li>
-          <li><a href="#features">Dynamic Python Tool Registry</a></li>
-          <li><a href="#features">Persistent Vector Knowledge Graph</a></li>
-          <li><a href="#why-nia">On-Device Local Model Runners</a></li>
+          <li><a href="/simulator">Supervisor DAG Orchestration</a></li>
+          <li><a href="/features">Neural Low-Latency Voice Engine</a></li>
+          <li><a href="/features">3D Avatar Lip-Sync & Visemes</a></li>
+          <li><a href="/features">Dynamic Python Tool Registry</a></li>
+          <li><a href="/features">Persistent Vector Knowledge Graph</a></li>
+          <li><a href="/why-nia">On-Device Local Model Runners</a></li>
         </ul>
       </div>
 
@@ -1746,12 +1746,12 @@ cd "nia0.1"</pre>
       <div class="footer-col">
         <h3 class="col-title">Developers & SDK</h3>
         <ul class="footer-links">
-          <li><a href="#quickstart">API Reference & OpenAPI</a></li>
-          <li><a href="#quickstart">Python Desktop SDK</a></li>
-          <li><a href="#quickstart">Real-Time Voice WebSockets</a></li>
-          <li><a href="#features">Community Skills Marketplace</a></li>
+          <li><a href="/quickstart">API Reference & OpenAPI</a></li>
+          <li><a href="/quickstart">Python Desktop SDK</a></li>
+          <li><a href="/quickstart">Real-Time Voice WebSockets</a></li>
+          <li><a href="/features">Community Skills Marketplace</a></li>
           <li><a href="https://github.com/manojalig2979-dot/nia0.1/releases" target="_blank">Changelog & Benchmarks</a></li>
-          <li><a href="#status">Global Node Uptime</a></li>
+          <li><a href="/status">Global Node Uptime</a></li>
         </ul>
       </div>
 
@@ -1759,9 +1759,9 @@ cd "nia0.1"</pre>
       <div class="footer-col">
         <h3 class="col-title">Enterprise & Trust</h3>
         <ul class="footer-links">
-          <li><a href="#about">About NDTechHub & NAVDIVA</a></li>
-          <li><a href="#contact">Contact Engineering & Sales</a></li>
-          <li><a href="#why-nia">Enterprise Air-Gapped Deployments</a></li>
+          <li><a href="/about">About NDTechHub & NAVDIVA</a></li>
+          <li><a href="/contact">Contact Engineering & Sales</a></li>
+          <li><a href="/why-nia">Enterprise Air-Gapped Deployments</a></li>
           <li><a href="/privacy">Zero-Data-Retention Policy</a></li>
           <li><a href="/terms">Licensing & Terms of Use</a></li>
           <li><a href="mailto:sales@ndtechhub.com">Commercial Volume Sales</a></li>

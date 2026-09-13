@@ -876,3 +876,200 @@ code, pre, .font-mono {
     0 8px 20px rgba(0, 0, 0, 0.7);
   transform: translateY(-4px) scale(1.08);
 }
+
+/* =========================================================
+   BENTO SEGMENTED NAVBAR (FUTURISTIC HUD EFFECT)
+   ========================================================= */
+.bento-header-wrapper {
+  position: sticky;
+  top: 12px;
+  z-index: 50;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.bento-navbar-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 12px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(16, 21, 36, 0.85) 0%, rgba(8, 10, 18, 0.92) 100%);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.6),
+    0 24px 48px -12px rgba(0, 0, 0, 0.85),
+    0 0 25px -5px rgba(0, 242, 254, 0.12);
+}
+
+/* Bento Segment: Brand Pod */
+.bento-brand-pod {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.25s ease;
+}
+.bento-brand-pod:hover {
+  background: rgba(0, 242, 254, 0.06);
+  border-color: rgba(0, 242, 254, 0.3);
+}
+
+/* Bento Segment: Links Pod (Center Segmented Capsule) */
+.bento-links-pod {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+@media (min-width: 1024px) {
+  .bento-links-pod {
+    display: flex;
+  }
+}
+
+.bento-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+}
+.bento-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+.bento-pill.active, .bento-pill.bento-pill-highlight {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.12);
+  border-color: rgba(0, 242, 254, 0.35);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+}
+
+/* Bento Segment: Actions Pod */
+.bento-actions-pod {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================
+   DARK NEUMORPHISM CONTACT FORM SYSTEM
+   ========================================================= */
+
+/* Soft Dark Neumorphic Card Container */
+.neumorph-card {
+  background: #090c14;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    16px 16px 36px #030407,
+    -12px -12px 32px rgba(255, 255, 255, 0.025),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.09);
+  transition: all 0.3s ease;
+}
+
+/* Neumorphic Info Card Tiles (Extruded Tile) */
+.neumorph-info-tile {
+  background: #0a0d16;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 
+    8px 8px 20px #040508,
+    -6px -6px 16px rgba(255, 255, 255, 0.02),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.25s ease;
+}
+.neumorph-info-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    10px 10px 24px #030406,
+    -8px -8px 20px rgba(255, 255, 255, 0.035),
+    inset 1px 1px 0 rgba(0, 242, 254, 0.2);
+  border-color: rgba(0, 242, 254, 0.25);
+}
+
+/* Neumorphic Inset Input & Textarea */
+.neumorph-input {
+  width: 100%;
+  padding: 0.85rem 1.15rem;
+  background: #06080e;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  outline: none;
+  box-shadow: 
+    inset 4px 4px 8px #020306,
+    inset -3px -3px 7px rgba(255, 255, 255, 0.025);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neumorph-input:focus {
+  border-color: rgba(0, 242, 254, 0.45);
+  box-shadow: 
+    inset 5px 5px 10px #020305,
+    inset -3px -3px 8px rgba(0, 242, 254, 0.08),
+    0 0 16px rgba(0, 242, 254, 0.22);
+}
+
+/* Neumorphic Tactile Push Button */
+.neumorph-btn {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #101726, #070a12);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  color: #00f2fe;
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 
+    6px 6px 16px #030407,
+    -5px -5px 14px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neumorph-btn:hover {
+  background: linear-gradient(145deg, #141c2e, #090e18);
+  box-shadow: 
+    8px 8px 20px #020305,
+    -6px -6px 18px rgba(255, 255, 255, 0.06),
+    0 0 25px rgba(0, 242, 254, 0.35),
+    inset 0 1px 0 rgba(0, 242, 254, 0.5);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+.neumorph-btn:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 4px 4px 10px #020305,
+    inset -3px -3px 8px rgba(0, 242, 254, 0.15);
+}
