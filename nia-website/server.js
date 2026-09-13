@@ -278,6 +278,40 @@ app.get('/download/installer', (req, res) => {
   return res.redirect(302, GITHUB_RELEASE_DOWNLOAD_URL);
 });
 
+// Contact Us Form Submission API
+const CONTACTS_DB_PATH = path.join(DATA_DIR, 'contacts.json');
+app.post('/api/contact', (req, res) => {
+  const { name, email, inquiry_type, subject, message } = req.body || {};
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required.' });
+  }
+
+  const contacts = loadJsonDb(CONTACTS_DB_PATH);
+  const contactId = 'CNT-' + Date.now();
+  contacts[contactId] = {
+    id: contactId,
+    name,
+    email,
+    inquiry_type: inquiry_type || 'general',
+    subject: subject || 'No Subject',
+    message,
+    created_at: new Date().toISOString()
+  };
+  saveJsonDb(CONTACTS_DB_PATH, contacts);
+
+  console.log(`[NDTechHub] Received contact inquiry from ${name} (${email}) - Type: ${inquiry_type}`);
+  return res.json({ success: true, message: 'Message received successfully', contact_id: contactId });
+});
+
+// Friendly redirect routes
+app.get('/about', (req, res) => {
+  res.redirect('/#about');
+});
+
+app.get('/contact', (req, res) => {
+  res.redirect('/#contact');
+});
+
 // Single Page Application fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

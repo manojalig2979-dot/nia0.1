@@ -342,6 +342,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- CONTACT FORM SUBMISSION ---
+  const contactForm = document.getElementById("contact-form");
+  const contactSuccessMsg = document.getElementById("contact-success-msg");
+  if (contactForm) {
+    contactForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById("contact-submit-btn");
+      const name = document.getElementById("contact-name").value.trim();
+      const email = document.getElementById("contact-email").value.trim();
+      const inquiryType = document.getElementById("contact-inquiry-type").value;
+      const subject = document.getElementById("contact-subject").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sending to Engineering...';
+      }
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            inquiry_type: inquiryType,
+            subject: subject,
+            message: message
+          })
+        });
+        const result = await response.json();
+        if (result.success) {
+          contactForm.classList.add("hidden");
+          if (contactSuccessMsg) {
+            contactSuccessMsg.classList.remove("hidden");
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }
+        } else {
+          alert(result.error || "Submission failed. Please email us directly at support@ndtechhub.com");
+        }
+      } catch (err) {
+        contactForm.classList.add("hidden");
+        if (contactSuccessMsg) {
+          contactSuccessMsg.classList.remove("hidden");
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+
   // --- MOBILE MENU TOGGLE ---
   const mobileMenuBtn = document.getElementById("mobile-menu-btn");
   const mobileMenu = document.getElementById("mobile-menu");
