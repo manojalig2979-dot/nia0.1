@@ -303,6 +303,23 @@ app.post('/api/contact', (req, res) => {
   return res.json({ success: true, message: 'Message received successfully', contact_id: contactId });
 });
 
+// Legal, Privacy & Policy Pages
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'privacy.html'));
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'terms.html'));
+});
+
+app.get('/cookies', (req, res) => {
+  res.sendFile(path.join(__dirname, 'telemetry.html'));
+});
+
+app.get('/telemetry', (req, res) => {
+  res.sendFile(path.join(__dirname, 'telemetry.html'));
+});
+
 // Friendly redirect routes
 app.get('/about', (req, res) => {
   res.redirect('/#about');
@@ -310,6 +327,10 @@ app.get('/about', (req, res) => {
 
 app.get('/contact', (req, res) => {
   res.redirect('/#contact');
+});
+
+app.get('/status', (req, res) => {
+  res.redirect('/#status');
 });
 
 // Single Page Application fallback

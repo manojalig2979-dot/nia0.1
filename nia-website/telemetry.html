@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telemetry Settings & Local Perimeter Controls — NIA 1.0 | NDTechHub</title>
+  <meta name="description" content="Manage telemetry settings, host perimeter controls, and local-first data retention for NIA 1.0 by NDTechHub.">
+  <link rel="icon" type="image/x-icon" href="assets/images/nia_icon.ico">
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#07090E',
+            cardDark: '#0F121C',
+            accentCyan: '#00F5D4',
+            accentBlue: '#00B4D8',
+            accentPurple: '#9D4EDD',
+            accentEmerald: '#10B981'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-brandDark text-slate-200 font-sans antialiased selection:bg-accentCyan selection:text-black bg-grid-pattern min-h-screen flex flex-col justify-between">
+
+  <!-- NAVIGATION -->
+  <header class="sticky top-0 z-50 glassmorphism border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/" class="flex items-center space-x-3 group">
+        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 p-[2px] shadow-lg group-hover:glow-cyan transition duration-300">
+          <div class="w-full h-full bg-brandDark rounded-[10px] flex items-center justify-center font-bold text-accentCyan text-xl">
+            N
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-accentCyan transition">Nia</span>
+            <span class="text-[10px] font-mono font-bold text-accentCyan bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">v1.0.0</span>
+          </div>
+          <p class="text-[10px] tracking-widest uppercase text-slate-400 font-mono">By NDTechHub</p>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
+        <a href="/#why-nia" class="hover:text-accentCyan transition">Why Nia</a>
+        <a href="/#features" class="hover:text-accentCyan transition">Capabilities</a>
+        <a href="/#about" class="hover:text-accentCyan transition">About NDTechHub</a>
+        <a href="/#pricing" class="hover:text-accentCyan transition text-accentCyan">Pricing & Test Flight</a>
+        <a href="/#contact" class="hover:text-accentCyan transition">Contact</a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+        <a href="/" class="inline-flex items-center space-x-2 text-xs font-bold text-slate-300 hover:text-white glassmorphism px-4 py-2.5 rounded-full border border-white/10 hover:border-accentCyan transition">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span>Back to Home</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN TELEMETRY CONTENT -->
+  <main class="max-w-4xl mx-auto px-6 py-16 flex-1">
+    
+    <!-- Hero Header -->
+    <div class="mb-12 border-b border-white/10 pb-8">
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full glassmorphism text-xs text-accentCyan mb-4 border border-cyan-500/30 font-mono">
+        <i data-lucide="sliders" class="w-4 h-4"></i>
+        <span>PERIMETER & LOCAL PREFERENCES</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight">
+        Telemetry & <span class="text-gradient-cyan">Data Controls</span>
+      </h1>
+      <p class="mt-4 text-slate-400 text-sm sm:text-base leading-relaxed">
+        NIA 1.0 does not use third-party advertising cookies or remote telemetry trackers. Below are your local host perimeter policies.
+      </p>
+    </div>
+
+    <!-- Interactive Toggles -->
+    <div class="space-y-6">
+      
+      <!-- Control 1 -->
+      <div class="glassmorphism-card p-6 sm:p-8 rounded-3xl border border-cyan-500/30 flex items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h3 class="text-base font-bold text-white">Local-First Perimeter Lock</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            Enforces that all tool execution, AST code inspection, and file operations remain locked strictly inside your local Windows OS.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-mono font-bold shrink-0">
+          ALWAYS ON
+        </span>
+      </div>
+
+      <!-- Control 2 -->
+      <div class="glassmorphism-card p-6 sm:p-8 rounded-3xl border border-white/10 flex items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="bug" class="w-4 h-4 text-purple-400"></i>
+            <h3 class="text-base font-bold text-white">Anonymous Crash Dumps</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            Send anonymized stack trace exceptions upon unexpected desktop process terminations to assist NDTechHub engineers in issuing stability patches.
+          </p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+          <input type="checkbox" checked class="sr-only peer" id="crash-toggle">
+          <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accentCyan"></div>
+        </label>
+      </div>
+
+      <!-- Control 3 -->
+      <div class="glassmorphism-card p-6 sm:p-8 rounded-3xl border border-white/10 flex items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
+            <h3 class="text-base font-bold text-white">Local Rollback Snapshot Retention (.nia_backups)</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            Retain local diff checkpoints on disk before modifying workspace files so you can revert any AI agent code changes with 1 click.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-cyan-500/10 text-accentCyan border border-cyan-500/30 text-xs font-mono shrink-0">
+          ACTIVE (7 DAYS)
+        </span>
+      </div>
+
+      <!-- Control 4 -->
+      <div class="glassmorphism-card p-6 sm:p-8 rounded-3xl border border-white/10 flex items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="cookie" class="w-4 h-4 text-amber-400"></i>
+            <h3 class="text-base font-bold text-white">Browser Cookies & Session Tokens</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">
+            The NIA website uses zero advertising, remarketing, or third-party behavioral cookies. Only essential checkout session data is preserved.
+          </p>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-white/10 text-slate-300 text-xs font-mono shrink-0">
+          ZERO TRACKING
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Action Save Button -->
+    <div class="mt-8 p-6 rounded-2xl bg-black/40 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <span class="text-xs text-slate-400 font-mono">Preferences stored locally in your current browser localStorage.</span>
+      <button onclick="alert('Local perimeter preferences saved successfully!');" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold text-xs hover:opacity-95 transition glow-cyan">
+        Save Preferences
+      </button>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 py-12 bg-black/60">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs">
+      <p class="text-slate-500 font-mono">
+        &copy; 2026 <strong>NIA AI</strong>. Developed by <a href="https://ndtechhub.com" target="_blank" class="text-accentCyan hover:underline">NDTechHub</a>, the AI division of <a href="https://navdivagroup.com" target="_blank" class="text-purple-400 hover:underline">NAVDIVA Group</a>.
+      </p>
+      <div class="flex items-center space-x-6 text-slate-400">
+        <a href="/privacy" class="hover:text-white transition">Privacy Notice</a>
+        <span>•</span>
+        <a href="/terms" class="hover:text-white transition">Terms of Service</a>
+        <span>•</span>
+        <a href="/cookies" class="text-white hover:underline">Telemetry Settings</a>
+        <span>•</span>
+        <a href="/#contact" class="hover:text-white transition">Contact Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
