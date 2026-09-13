@@ -68,3 +68,4 @@ def test_workflow_triggered_signal(manager):
             
     assert len(triggered) == 1
     assert triggered[0] == ("Fast", "Task")
+

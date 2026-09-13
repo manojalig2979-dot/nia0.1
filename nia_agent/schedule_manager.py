@@ -93,3 +93,4 @@ class ScheduledWorkflowManager(QObject):
             if changed:
                 self.save()
             time.sleep(10)
+

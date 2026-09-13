@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nia 1.0 — Sovereign Desktop AI Agent | NDTechHub</title>
+  <meta name="description" content="Nia 1.0 is a sovereign, local-first autonomous desktop AI agent. Real deterministic OS automation, zero cloud visual scraping, native Hinglish voice, and AST code intelligence.">
+  <link rel="icon" type="image/x-icon" href="assets/images/nia_icon.ico">
+  
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#07090E',
+            cardDark: '#0F121C',
+            accentCyan: '#00F5D4',
+            accentBlue: '#00B4D8',
+            accentPurple: '#9D4EDD',
+            accentEmerald: '#10B981'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-brandDark text-slate-200 font-sans antialiased selection:bg-accentCyan selection:text-black bg-grid-pattern">
+
+  <!-- NAVIGATION -->
+  <header class="sticky top-0 z-50 glassmorphism border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" class="flex items-center space-x-3 group">
+        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 p-[2px] shadow-lg group-hover:glow-cyan transition duration-300">
+          <div class="w-full h-full bg-brandDark rounded-[10px] flex items-center justify-center font-bold text-accentCyan text-xl">
+            N
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-extrabold tracking-tight text-white group-hover:text-accentCyan transition">Nia</span>
+            <span class="text-[10px] font-mono font-bold text-accentCyan bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">v1.0.0</span>
+          </div>
+          <p class="text-[10px] tracking-widest uppercase text-slate-400 font-mono">By NDTechHub</p>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-300">
+        <a href="#why-nia" class="hover:text-accentCyan transition">Why Nia</a>
+        <a href="#simulator" class="hover:text-accentCyan transition">Live DAG Demo</a>
+        <a href="#comparison" class="hover:text-accentCyan transition">Nia vs Cloud</a>
+        <a href="#pricing" class="hover:text-accentCyan transition text-accentCyan">Pricing & Test Flight</a>
+        <a href="#features" class="hover:text-accentCyan transition">Capabilities</a>
+        <a href="#quickstart" class="hover:text-accentCyan transition">Quickstart</a>
+        <a href="#faq" class="hover:text-accentCyan transition">FAQ</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-4">
+        <a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center space-x-2 text-xs font-mono text-slate-300 hover:text-white glassmorphism px-4 py-2 rounded-lg border border-white/10 hover:border-accentCyan/40 transition">
+          <i class="fa-brands fa-github text-sm"></i>
+          <span>GitHub</span>
+        </a>
+
+        <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black px-5 py-2.5 rounded-full font-bold text-sm hover:opacity-95 transition glow-cyan">
+          <i class="fa-solid fa-download"></i>
+          <span>Get Nia 1.0</span>
+        </button>
+
+        <!-- Mobile Menu Trigger -->
+        <button id="mobile-menu-btn" class="lg:hidden text-slate-300 hover:text-white p-2" aria-label="Toggle menu">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden lg:hidden glassmorphism border-b border-white/10 px-6 py-4 space-y-3 text-sm font-medium">
+      <a href="#why-nia" class="block text-slate-300 hover:text-accentCyan">Why Nia</a>
+      <a href="#simulator" class="block text-slate-300 hover:text-accentCyan">Live DAG Demo</a>
+      <a href="#comparison" class="block text-slate-300 hover:text-accentCyan">Nia vs Cloud</a>
+      <a href="#pricing" class="block text-accentCyan hover:underline font-bold">Pricing & Test Flight</a>
+      <a href="#features" class="block text-slate-300 hover:text-accentCyan">Capabilities</a>
+      <a href="#quickstart" class="block text-slate-300 hover:text-accentCyan">Quickstart</a>
+      <a href="#faq" class="block text-slate-300 hover:text-accentCyan">FAQ</a>
+      <a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank" class="block text-slate-300 hover:text-accentCyan">GitHub Repository</a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="relative pt-20 pb-24 overflow-hidden">
+    <!-- Ambient glowing light orbs -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-tr from-cyan-500/15 via-purple-600/15 to-transparent blur-[140px] rounded-full pointer-events-none"></div>
+    <div class="absolute top-1/3 left-10 w-72 h-72 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+      <div class="text-center max-w-4xl mx-auto">
+        <!-- Eyebrow status pill -->
+        <div class="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full glassmorphism text-xs text-slate-300 mb-8 border border-cyan-500/30">
+          <span class="w-2.5 h-2.5 rounded-full bg-accentCyan animate-ping"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-accentCyan -ml-5"></span>
+          <span class="font-mono">Local Perimeter Active • Zero Cloud Visual Telemetry</span>
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.12]">
+          Stop Streaming Your Screen to Cloud LLMs. <br>
+          <span class="text-gradient-cyan">Command Your Desktop With Sovereign AI.</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+          Cloud "computer use" agents record private bank tabs, guess mouse clicks, and burn hundreds of multimodal tokens per minute. <strong>Nia 1.0</strong> is an air-gapped sovereign desktop agent by <strong>NDTechHub</strong> that executes through deterministic OS tools, AST code intelligence, strict human approval gates, and natural Hindi/Hinglish voice.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button class="open-download-modal w-full sm:w-auto inline-flex items-center justify-center space-x-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-bold px-8 py-4 rounded-xl hover:opacity-95 transition glow-cyan">
+            <i class="fa-brands fa-windows text-xl"></i>
+            <span class="text-base">Download Windows Installer (.exe)</span>
+          </button>
+          
+          <a href="#simulator" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 glassmorphism hover:bg-white/10 text-white font-medium px-8 py-4 rounded-xl transition border border-white/10">
+            <i class="fa-solid fa-play text-accentCyan"></i>
+            <span>Try Interactive Simulator</span>
+          </a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="mt-8 text-xs text-slate-400 flex flex-wrap items-center justify-center gap-6 font-mono">
+          <span><i class="fa-solid fa-shield-halved text-accentCyan mr-1.5"></i> Host-Bound Execution</span>
+          <span><i class="fa-solid fa-code-branch text-purple-400 mr-1.5"></i> AST AST Diff Review</span>
+          <span><i class="fa-solid fa-microphone text-emerald-400 mr-1.5"></i> Offline Whisper + Swara Neural</span>
+          <span><i class="fa-brands fa-whatsapp text-green-400 mr-1.5"></i> Persistent WhatsApp Gateway</span>
+        </div>
+      </div>
+
+      <!-- HERO VISUAL SHOWCASE: NIA DESKTOP HUD -->
+      <div class="mt-16 max-w-5xl mx-auto">
+        <div class="glassmorphism-card rounded-3xl p-6 sm:p-8 border border-white/10 relative overflow-hidden shadow-2xl">
+          <!-- Window Header -->
+          <div class="flex items-center justify-between pb-6 border-b border-white/10">
+            <div class="flex items-center space-x-3">
+              <div class="flex space-x-2">
+                <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+              </div>
+              <span class="text-xs font-mono text-slate-400">nia-desktop-core [PID: 4981] — PyQt6 & Three.js Runtime</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>SYSTEM SOVEREIGN</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Hero Interior Grid -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- 3D Mascot Avatar Preview -->
+            <div class="md:col-span-5 flex flex-col items-center text-center p-4 rounded-2xl bg-black/40 border border-white/5 relative">
+              <div class="relative w-44 h-44 rounded-2xl overflow-hidden border-2 border-accentCyan/40 shadow-xl group">
+                <img src="assets/images/nia_avatar.jpg" alt="Nia 3D Avatar Mascot" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-brandDark via-transparent to-transparent opacity-60"></div>
+                <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2 py-1 rounded bg-black/70 backdrop-blur-sm text-[10px] font-mono">
+                  <span class="text-accentCyan">Michi Bot 3D</span>
+                  <span class="text-slate-400">Ready</span>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center space-x-2">
+                <div class="sound-wave">
+                  <span class="sound-bar"></span>
+                  <span class="sound-bar"></span>
+                  <span class="sound-bar"></span>
+                  <span class="sound-bar"></span>
+                  <span class="sound-bar"></span>
+                </div>
+                <span class="text-xs font-mono text-slate-300">Swara Neural Voice Active</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">"Namaste! Main aapka autonomous desktop agent hoon."</p>
+            </div>
+
+            <!-- Live Telemetry & Capabilities Cards -->
+            <div class="md:col-span-7 space-y-3">
+              <div class="p-4 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-9 h-9 rounded-lg bg-cyan-500/10 text-accentCyan flex items-center justify-center">
+                    <i class="fa-solid fa-shield-halved"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white">Visual Privacy Perimeter</div>
+                    <div class="text-[11px] text-slate-400">Zero screen frames dispatched to remote LLM clouds</div>
+                  </div>
+                </div>
+                <span class="text-xs font-mono font-bold text-accentCyan">100% Host Bound</span>
+              </div>
+
+              <div class="p-4 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                    <i class="fa-solid fa-diagram-project"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white">Deterministic DAG Orchestrator</div>
+                    <div class="text-[11px] text-slate-400">Typed OS APIs with verified exit codes vs coordinate guessing</div>
+                  </div>
+                </div>
+                <span class="text-xs font-mono font-bold text-purple-400">0 Hallucination</span>
+              </div>
+
+              <div class="p-4 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <i class="fa-solid fa-code-compare"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-white">AST Safe Code Review & Backups</div>
+                    <div class="text-[11px] text-slate-400">Unified diffs + rollback preservation in .nia_backups</div>
+                  </div>
+                </div>
+                <span class="text-xs font-mono font-bold text-emerald-400">Safe Rollback</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE INTERACTIVE SIMULATOR SECTION -->
+  <section id="simulator" class="py-20 border-t border-white/5 relative">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <h2 class="text-xs uppercase tracking-widest text-accentCyan font-bold font-mono">Interactive Demonstration</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2">See Nia Execute in Real-Time</p>
+        <p class="text-slate-400 text-sm mt-3">
+          Click any real-world voice command below to see how Nia processes verbal intents into deterministic OS tool calls with audio confirmation.
+        </p>
+      </div>
+
+      <!-- Scenario Selector Tabs -->
+      <div class="flex flex-wrap items-center justify-center gap-2 mb-8">
+        <button class="scenario-btn text-xs font-mono px-4 py-2.5 rounded-xl border border-accentCyan bg-cyan-500/10 text-accentCyan transition flex items-center space-x-2" data-index="0">
+          <i class="fa-solid fa-code"></i>
+          <span>Developer & AST Inspection</span>
+        </button>
+        <button class="scenario-btn text-xs font-mono px-4 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:border-white/20 transition flex items-center space-x-2" data-index="1">
+          <i class="fa-brands fa-whatsapp"></i>
+          <span>WhatsApp & Screen Capture</span>
+        </button>
+        <button class="scenario-btn text-xs font-mono px-4 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:border-white/20 transition flex items-center space-x-2" data-index="2">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>System Audio & Docs</span>
+        </button>
+        <button class="scenario-btn text-xs font-mono px-4 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:border-white/20 transition flex items-center space-x-2" data-index="3">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <span>Self-Healing Diagnostics</span>
+        </button>
+      </div>
+
+      <!-- Live Simulator Terminal Window -->
+      <div class="glassmorphism rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+        <!-- Terminal Top Bar -->
+        <div class="bg-black/50 px-6 py-4 flex items-center justify-between border-b border-white/10">
+          <div class="flex items-center space-x-3">
+            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+            <span class="text-xs font-mono text-slate-300">nia-supervisor-daemon — Directed Acyclic Graph (DAG)</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div id="terminal-soundwave" class="sound-wave">
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+              <span class="sound-bar"></span>
+            </div>
+            <span class="text-[11px] text-accentCyan bg-cyan-500/10 border border-cyan-500/30 px-3 py-1 rounded-full font-mono">STATUS: 200 OK</span>
+          </div>
+        </div>
+
+        <!-- Terminal Dynamic Screen -->
+        <div id="terminal-screen" class="p-6 sm:p-8 space-y-4 bg-brandDark/95 font-mono">
+          <!-- Populated dynamically by assets/js/main.js -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HEAD-TO-HEAD COMPARISON TABLE: NIA VS CLAUDE & CLOUD GIANTS -->
+  <section id="comparison" class="py-20 border-t border-white/5 bg-black/30">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-xs uppercase tracking-widest text-accentCyan font-bold font-mono">Architectural Breakdown</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Why Sovereign Engineers Choose Nia</p>
+        <p class="text-slate-400 text-sm mt-3">
+          Comparing local-first deterministic execution against cloud multimodal computer use agents.
+        </p>
+      </div>
+
+      <div class="glassmorphism rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-black/70 border-b border-white/10 text-xs font-mono uppercase text-slate-400">
+              <tr>
+                <th class="p-6">Feature & Architectural Vector</th>
+                <th class="p-6 text-slate-500">Claude Computer Use / Cloud Vision</th>
+                <th class="p-6 text-accentCyan font-bold bg-cyan-500/5">Nia 1.0 (NDTechHub)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-xs sm:text-sm">
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="p-6 text-white font-semibold">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-lock text-accentCyan"></i>
+                    <span>Desktop Data Perimeter</span>
+                  </div>
+                </td>
+                <td class="p-6 text-slate-400">
+                  Screenshots of private source code, IDEs, and browser windows are continually uploaded to cloud servers.
+                </td>
+                <td class="p-6 text-accentCyan font-mono bg-cyan-500/5 font-medium">
+                  100% Host-bound. Zero visual desktop frames leave your device. Strict privacy perimeter.
+                </td>
+              </tr>
+
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="p-6 text-white font-semibold">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-bullseye text-purple-400"></i>
+                    <span>Execution Mechanism</span>
+                  </div>
+                </td>
+                <td class="p-6 text-slate-400">
+                  Guessed pixel coordinates (x, y). Prone to UI drift, misclicks, and visual hallucination errors.
+                </td>
+                <td class="p-6 text-accentCyan font-mono bg-cyan-500/5 font-medium">
+                  Deterministic DAG. Direct Windows OS handles, typed Python routines, and standard exit codes.
+                </td>
+              </tr>
+
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="p-6 text-white font-semibold">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                    <span>Safety & Rollback Protection</span>
+                  </div>
+                </td>
+                <td class="p-6 text-slate-400">
+                  Black-box autonomy; can overwrite files or trigger accidental UI buttons without safe snapshots.
+                </td>
+                <td class="p-6 text-accentCyan font-mono bg-cyan-500/5 font-medium">
+                  Unified diff review + strict user confirmation modal + automatic snapshots in .nia_backups.
+                </td>
+              </tr>
+
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="p-6 text-white font-semibold">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-language text-blue-400"></i>
+                    <span>Voice & Multilingual Mastery</span>
+                  </div>
+                </td>
+                <td class="p-6 text-slate-400">
+                  Text-chat centric. Speech requires separate external translation and browser wrappers.
+                </td>
+                <td class="p-6 text-accentCyan font-mono bg-cyan-500/5 font-medium">
+                  Native Hindi & Hinglish voice input (Whisper) with Microsoft Swara Neural conversational TTS.
+                </td>
+              </tr>
+
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="p-6 text-white font-semibold">
+                  <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-coins text-amber-400"></i>
+                    <span>Token & Cloud Running Cost</span>
+                  </div>
+                </td>
+                <td class="p-6 text-slate-400">
+                  Massive token burn: 1500+ tokens consumed per screenshot capture for every sub-step.
+                </td>
+                <td class="p-6 text-accentCyan font-mono bg-cyan-500/5 font-medium">
+                  Zero visual tokens. Minimal text tokens via free Gemini API keys, or entirely offline tools.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPABILITIES / FEATURE GRID -->
+  <section id="features" class="py-20 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs uppercase tracking-widest text-accentCyan font-bold font-mono">Full Capability Suite</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Engineered For True Machine Mastery</p>
+        <p class="text-slate-400 text-sm mt-3">
+          Everything built into Nia 1.0 to turn your Windows machine into an autonomous, voice-reactive powerhouse.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Card 1: 3D Companion -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-accentCyan flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-cube"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Interactive 3D Bot Avatar</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Live 3D viewport powered by PyQt6 & Three.js. Supports 4 GLB avatars (Michi Bot, Angelica, Robot) with speech-reactive lip sync and desktop tray docking.
+          </p>
+        </div>
+
+        <!-- Card 2: AST Code Copilot -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-code-fork"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">AST Code Intelligence</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Understands Python AST syntax trees, JavaScript, and HTML structure. Generates clean unified diffs and requests explicit confirmation before writing code.
+          </p>
+        </div>
+
+        <!-- Card 3: WhatsApp Gateway -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">WhatsApp Web Gateway</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Automated persistent browser profile. Read messages, send status alerts, and forward desktop screenshots directly to contacts without hunting tabs.
+          </p>
+        </div>
+
+        <!-- Card 4: Word Documents -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-file-word"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Document Generation (.docx)</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Draft formal business letters, client agreements, and leave applications. Formatted directly into clean Microsoft Word documents on disk.
+          </p>
+        </div>
+
+        <!-- Card 5: OS & Media Control -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Windows System Control</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Launch native desktop apps (VS Code, Chrome, Paint, Calc), manage Windows master volume, and stream songs via Windows Media Player or YouTube.
+          </p>
+        </div>
+
+        <!-- Card 6: Rollback & Diagnostics -->
+        <div class="glassmorphism-card p-8 rounded-3xl">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-6">
+            <i class="fa-solid fa-rotate-left"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Backups & Self-Healing</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Automatic snapshot creation in <code>.nia_backups</code> before file modifications. Built-in diagnostics audit mic health, LLM latency, and Git worktrees.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICKSTART / DEVELOPER SETUP SECTION -->
+  <section id="quickstart" class="py-20 border-t border-white/5 bg-black/20">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <h2 class="text-xs uppercase tracking-widest text-accentCyan font-bold font-mono">Installation Guide</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Get Up and Running in Minutes</p>
+        <p class="text-slate-400 text-sm mt-3">
+          Choose between the 1-click Windows executable installer or setting up from source with Python.
+        </p>
+      </div>
+
+      <!-- Quickstart Tab Buttons -->
+      <div class="flex border-b border-white/10 mb-8 max-w-md mx-auto justify-center">
+        <button class="qs-tab-btn px-6 py-3 text-sm font-bold border-b-2 border-accentCyan text-accentCyan bg-cyan-500/10 transition" data-tab="qs-installer">
+          <i class="fa-brands fa-windows mr-2"></i>Standalone Installer (.exe)
+        </button>
+        <button class="qs-tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition" data-tab="qs-source">
+          <i class="fa-brands fa-git-alt mr-2"></i>Python Source Setup
+        </button>
+      </div>
+
+      <!-- Quickstart Content 1: Standalone Installer -->
+      <div id="qs-installer" class="qs-tab-content glassmorphism-card p-8 rounded-3xl space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-5 rounded-2xl bg-black/40 border border-white/5">
+            <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-accentCyan font-bold flex items-center justify-center mb-3">1</div>
+            <h4 class="font-bold text-white text-sm">Download Binary</h4>
+            <p class="text-slate-400 text-xs mt-2">Grab <code>Nia-Setup-1.0.exe</code> (~510MB self-contained distribution containing all PyQt & Three.js assets).</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-black/40 border border-white/5">
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center mb-3">2</div>
+            <h4 class="font-bold text-white text-sm">Run First-Boot Wizard</h4>
+            <p class="text-slate-400 text-xs mt-2">Launch the app. The GUI prompts for your free Gemini API key, user name, and WhatsApp number.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-black/40 border border-white/5">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center mb-3">3</div>
+            <h4 class="font-bold text-white text-sm">Voice / GUI Command</h4>
+            <p class="text-slate-400 text-xs mt-2">Say "Nia" or click the microphone button. Start issuing natural Hinglish or English commands!</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-cyan-950/40 to-black/60 border border-cyan-500/30 gap-4">
+          <div>
+            <div class="text-white font-bold text-base">Ready to deploy Nia on your Windows machine?</div>
+            <div class="text-xs text-slate-400">Windows 10 / 11 64-bit • No GPU required • Zero visual cloud leaks</div>
+          </div>
+          <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black px-6 py-3 rounded-xl font-bold text-sm hover:opacity-95 transition glow-cyan shrink-0">
+            <i class="fa-solid fa-download"></i>
+            <span>Download Nia-Setup-1.0.exe</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quickstart Content 2: Python Source Setup -->
+      <div id="qs-source" class="qs-tab-content hidden glassmorphism-card p-8 rounded-3xl space-y-6">
+        <div class="space-y-4 font-mono text-xs">
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span>Step 1: Clone repository & enter workspace</span>
+              <button class="copy-btn text-accentCyan hover:underline" data-code="git clone https://github.com/manojalig2979-dot/nia0.1.git && cd &quot;nia0.1&quot;">
+                <i class="fa-regular fa-copy mr-1"></i> Copy
+              </button>
+            </div>
+            <pre class="p-4 rounded-xl bg-black/60 border border-white/10 text-cyan-300 overflow-x-auto">git clone https://github.com/manojalig2979-dot/nia0.1.git
+cd "nia0.1"</pre>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span>Step 2: Install Python dependencies</span>
+              <button class="copy-btn text-accentCyan hover:underline" data-code="pip install -r nia_agent/requirements.txt">
+                <i class="fa-regular fa-copy mr-1"></i> Copy
+              </button>
+            </div>
+            <pre class="p-4 rounded-xl bg-black/60 border border-white/10 text-cyan-300 overflow-x-auto">pip install -r nia_agent/requirements.txt</pre>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span>Step 3: Launch with desktop shortcut or batch script</span>
+              <button class="copy-btn text-accentCyan hover:underline" data-code=".\&quot;Start NIA.bat&quot;">
+                <i class="fa-regular fa-copy mr-1"></i> Copy
+              </button>
+            </div>
+            <pre class="p-4 rounded-xl bg-black/60 border border-white/10 text-cyan-300 overflow-x-auto">.\&quot;Start NIA.bat&quot;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING & COMMERCIAL TIERS SECTION -->
+  <section id="pricing" class="py-24 border-t border-white/5 relative bg-gradient-to-b from-black/50 via-brandDark to-black/30">
+    <div class="max-w-7xl mx-auto px-6">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-accentCyan text-xs font-mono mb-4">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>HYBRID DESKTOP & CLOUD CREDIT ARCHITECTURE</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white">Choose How You Command Nia.</h2>
+        <p class="text-slate-300 text-base mt-4 leading-relaxed">
+          Nia isn't a passive web chatbot. She's an autonomous desktop agent and real-time 3D companion. Choose a managed cloud subscription with pre-loaded AI credits, or grab the perpetual <strong>Lifetime BYOK Pass</strong> and power Nia with your own free Gemini API key forever.
+        </p>
+      </div>
+
+      <!-- 7-DAY TEST FLIGHT HERO BANNER (₹99 / $1) -->
+      <div class="max-w-4xl mx-auto mb-16 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-950/40 via-cardDark to-cyan-950/40 border border-accentCyan/40 relative shadow-2xl overflow-hidden glow-cyan">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+          <div class="space-y-2 text-center md:text-left">
+            <div class="flex items-center justify-center md:justify-start space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">7-Day Test Flight Available</span>
+            </div>
+            <h3 class="text-2xl font-black text-white">Experience Full Pro Autonomy for ₹99 / $1</h3>
+            <p class="text-xs text-slate-300 max-w-xl">
+              Get unrestricted access to Nia Pro for 7 full days. Test WhatsApp automation, AST coding copilot, and real-time 3D voice companion on your own machine. Auto-converts to Pro at ₹1,799/mo ($24) on Day 7, or cancel anytime with 1 click.
+            </p>
+          </div>
+
+          <div class="shrink-0">
+            <button class="open-buy-modal px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-extrabold text-sm hover:opacity-95 transition glow-cyan flex items-center space-x-2" data-tier="test_flight" data-price="₹99 / $1">
+              <i class="fa-solid fa-rocket"></i>
+              <span>Start Test Flight (₹99 / $1)</span>
+            </button>
+            <p class="text-[10px] text-center text-slate-400 mt-2 font-mono">100% money-back guarantee</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-TIER PRICING GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+        
+        <!-- TIER 1: STARTER / PERSONAL -->
+        <div class="glassmorphism-card p-8 rounded-3xl flex flex-col justify-between border border-white/10 hover:border-cyan-500/30 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-widest text-slate-400 font-bold">Personal</span>
+              <span class="text-[10px] font-mono text-slate-400 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full">DAILY COMPANION</span>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-4">Starter / Personal</h3>
+            <p class="text-slate-400 text-xs mt-1.5">For individuals wanting a smart voice companion for everyday tasks.</p>
+
+            <div class="mt-6 flex items-baseline space-x-1.5">
+              <span class="text-4xl font-extrabold text-white">₹899</span>
+              <span class="text-slate-400 text-xs font-mono">/ mo</span>
+              <span class="text-slate-500 text-xs font-mono">($12 USD)</span>
+            </div>
+
+            <div class="mt-7 space-y-3 text-xs text-slate-300">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-emerald-400"></i>
+                <span>Unlimited local OS automation & app launching</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-emerald-400"></i>
+                <span>Standard voice engine & Michi Bot 3D avatar</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-emerald-400"></i>
+                <span>500 cloud smart-agent tasks / month included</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-emerald-400"></i>
+                <span>Master volume & local media player controls</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-emerald-400"></i>
+                <span>Hardware-bound tamper-proof desktop license</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-white/10">
+            <button class="open-buy-modal w-full py-3.5 rounded-xl border border-white/20 hover:border-cyan-400/50 hover:bg-white/5 text-white font-bold text-xs transition flex items-center justify-center space-x-2" data-tier="starter" data-price="₹899 / $12 mo">
+              <span>Choose Starter — ₹899/mo</span>
+            </button>
+            <p class="text-[10px] text-center text-slate-500 mt-2 font-mono">Billed monthly • Cancel anytime</p>
+          </div>
+        </div>
+
+        <!-- TIER 2: PRO POWER AGENT (SWEET SPOT & HIGHLIGHTED) -->
+        <div class="glassmorphism-card p-8 rounded-3xl flex flex-col justify-between border-2 border-accentCyan relative glow-cyan bg-gradient-to-b from-cardDark via-brandDark to-black/60 shadow-2xl">
+          <!-- Featured Badge -->
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+            <span class="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 text-black text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-lg">
+              Most Popular
+            </span>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mt-2">
+              <span class="text-xs font-mono uppercase tracking-widest text-accentCyan font-bold">Power Agent</span>
+              <span class="text-[10px] font-mono text-cyan-300 bg-cyan-500/20 border border-cyan-400/40 px-2.5 py-0.5 rounded-full">SWEET SPOT</span>
+            </div>
+
+            <h3 class="text-2xl font-extrabold text-white mt-3">Pro Power Agent</h3>
+            <p class="text-slate-400 text-xs mt-1.5">For developers, freelancers, and professionals automating workflows.</p>
+
+            <div class="mt-6 flex items-baseline space-x-1.5">
+              <span class="text-4xl font-extrabold text-white">₹1,799</span>
+              <span class="text-slate-400 text-xs font-mono">/ mo</span>
+              <span class="text-slate-500 text-xs font-mono">($24 USD)</span>
+            </div>
+
+            <div class="mt-7 space-y-3 text-xs text-slate-200 font-medium">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-star text-accentCyan"></i>
+                <span class="text-white font-bold">Everything in Starter, PLUS:</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-accentCyan"></i>
+                <span>Ultra-low latency Swara Neural voice & all 4 3D avatars</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-accentCyan"></i>
+                <span>Persistent WhatsApp Web automation & screenshot dispatch</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-accentCyan"></i>
+                <span>Multi-file AST code intelligence & safe Git commit review</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-accentCyan"></i>
+                <span>Long-term persistent semantic memory & encrypted profiles</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-accentCyan"></i>
+                <span>Automated Word (.docx) document generator for client memos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-white/10">
+            <button class="open-buy-modal w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-extrabold text-xs hover:opacity-95 transition glow-cyan flex items-center justify-center space-x-2" data-tier="pro" data-price="₹1,799 / $24 mo">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Get Pro Agent — ₹1,799/mo</span>
+            </button>
+            <p class="text-[10px] text-center text-slate-400 mt-2 font-mono">Billed monthly • Includes trial option</p>
+          </div>
+        </div>
+
+        <!-- TIER 3: LIFETIME DESKTOP PASS (BYOK) -->
+        <div class="glassmorphism-card p-8 rounded-3xl flex flex-col justify-between border border-purple-500/30 hover:border-purple-400/50 transition">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-widest text-purple-400 font-bold">Sovereign Pass</span>
+              <span class="text-[10px] font-mono text-purple-300 bg-purple-500/20 border border-purple-400/40 px-2.5 py-0.5 rounded-full">ZERO SUBSCRIPTION</span>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mt-4">Lifetime BYOK Pass</h3>
+            <p class="text-slate-400 text-xs mt-1.5">For coders & tech-savvy users who want sovereign perpetual ownership.</p>
+
+            <div class="mt-6 flex items-baseline space-x-1.5">
+              <span class="text-4xl font-extrabold text-white">₹6,999</span>
+              <span class="text-xs font-bold text-purple-400 ml-1 font-mono">One-Time</span>
+              <span class="text-slate-500 text-xs font-mono">($99 USD)</span>
+            </div>
+
+            <div class="mt-7 space-y-3 text-xs text-slate-300">
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-crown text-purple-400"></i>
+                <span class="text-white font-bold">Own the Nia Desktop runtime forever</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-purple-400"></i>
+                <span>Connect your own free/paid Gemini, OpenAI, or Claude key</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-purple-400"></i>
+                <span>Zero recurring server or token fees to NDTechHub</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-purple-400"></i>
+                <span>All 4 3D avatars & complete local automation suite</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-purple-400"></i>
+                <span>All future Phase 2 & Phase 3 desktop updates included</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-check text-purple-400"></i>
+                <span>100% Host-bound privacy & local backups (.nia_backups)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-white/10">
+            <button class="open-buy-modal w-full py-3.5 rounded-xl border border-purple-500/50 hover:bg-purple-500/10 text-purple-300 font-bold text-xs transition flex items-center justify-center space-x-2" data-tier="lifetime_byok" data-price="₹6,999 / $99 LTD">
+              <i class="fa-solid fa-key"></i>
+              <span>Get Lifetime BYOK Pass (₹6,999)</span>
+            </button>
+            <p class="text-[10px] text-center text-slate-500 mt-2 font-mono">One-time payment • Perpetual license</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- THE THREE PILLARS THAT JUSTIFY THE VALUE -->
+      <div class="mt-20 pt-16 border-t border-white/10">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="text-xs font-mono uppercase tracking-widest text-accentCyan font-bold">Why Nia Justifies Her Seat On Your Machine</span>
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Three Core Pillars Behind Every Tier</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-accentCyan flex items-center justify-center text-lg mb-4">
+              <i class="fa-solid fa-computer"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">1. Direct System Controller</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Nia is not a browser chat box. She has hands: launching applications, foregrounding IDEs, sending WhatsApp media, and adjusting system audio with deterministic OS handles.
+            </p>
+          </div>
+
+          <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg mb-4">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">2. Persistent Private Memory</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Nia learns your workflow over time. Preferred workspace directories, colleague phone numbers, personal project paths, and schedule routines are stored locally in an encrypted memory bank.
+            </p>
+          </div>
+
+          <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg mb-4">
+              <i class="fa-solid fa-face-smile"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">3. An Expressive Living Presence</h4>
+            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              A real-time, low-latency 3D talking avatar rendered on your GPU with Microsoft Swara Neural conversational Hinglish voice provides a premium desktop experience far beyond cold CLI scripts.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ SECTION -->
+  <section id="faq" class="py-20 border-t border-white/5">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs uppercase tracking-widest text-accentCyan font-bold font-mono">Questions & Answers</h2>
+        <p class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Frequently Asked Questions</p>
+      </div>
+
+      <div class="space-y-4">
+        <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+          <h4 class="text-base font-bold text-white flex items-center space-x-3">
+            <i class="fa-solid fa-circle-question text-accentCyan"></i>
+            <span>How does Nia protect my data compared to Claude Computer Use?</span>
+          </h4>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed pl-7">
+            Claude's computer use feature works by capturing your entire screen and uploading the video/image stream to Anthropic's servers every few seconds. If an email, password, or banking tab is visible, it gets uploaded. In contrast, Nia never streams desktop screenshots to remote LLMs. Nia executes locally using typed Windows APIs, AST code inspections, and OS handles.
+          </p>
+        </div>
+
+        <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+          <h4 class="text-base font-bold text-white flex items-center space-x-3">
+            <i class="fa-solid fa-circle-question text-purple-400"></i>
+            <span>Do I need an expensive NVIDIA RTX GPU to run Nia?</span>
+          </h4>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed pl-7">
+            No. Nia is engineered to be lightweight. The speech recognition uses Whisper's optimized base model, speech synthesis uses Microsoft Swara Neural, and the agent orchestrator connects to Gemini Flash with sub-second latency over text-only queries. It runs smoothly on standard modern laptops with 4GB+ RAM.
+          </p>
+        </div>
+
+        <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+          <h4 class="text-base font-bold text-white flex items-center space-x-3">
+            <i class="fa-solid fa-circle-question text-emerald-400"></i>
+            <span>How does WhatsApp integration work?</span>
+          </h4>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed pl-7">
+            Nia maintains a dedicated, persistent browser profile in <code>nia_browser_profile/</code>. You scan the QR code once during setup. After that, Nia can read notifications, reply, and dispatch screenshots directly in the background without needing a third-party paid WhatsApp API.
+          </p>
+        </div>
+
+        <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+          <h4 class="text-base font-bold text-white flex items-center space-x-3">
+            <i class="fa-solid fa-circle-question text-cyan-300"></i>
+            <span>How does the 7-Day Test Flight (₹99 / $1) work?</span>
+          </h4>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed pl-7">
+            The 7-Day Pro Test Flight is an introductory ₹99 / $1 pass that unlocks 100% unrestricted access to all Nia Pro capabilities — including WhatsApp automation, AST coding supervisor, 3D talking avatar, and Swara Neural voice on your Windows PC. Once you start your test flight, you receive an instant license key to activate Nia. After 7 days, you can continue with Nia Pro (₹1,799/mo) or upgrade to the permanent Lifetime BYOK Pass (₹6,999) with zero recurring subscriptions.
+          </p>
+        </div>
+
+        <div class="glassmorphism p-6 rounded-2xl border border-white/10">
+          <h4 class="text-base font-bold text-white flex items-center space-x-3">
+            <i class="fa-solid fa-circle-question text-yellow-400"></i>
+            <span>Where do I get a free Google Gemini API key?</span>
+          </h4>
+          <p class="mt-2 text-sm text-slate-400 leading-relaxed pl-7">
+            You can generate a free API key in under 30 seconds from <a href="https://aistudio.google.com/" target="_blank" class="text-accentCyan underline">Google AI Studio</a>. Google provides generous free tiers for Gemini 1.5 Flash (15 free requests per minute), meaning you can run your desktop assistant every day with ₹0 in API costs.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA / DOWNLOAD HERO BANNER -->
+  <section id="download" class="py-20 relative">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+      <div class="glassmorphism p-12 rounded-3xl border border-cyan-500/40 relative overflow-hidden glow-cyan">
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-10 -top-10 w-60 h-60 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white">Claim Your Desktop Sovereignty</h2>
+        <p class="mt-4 text-slate-300 max-w-xl mx-auto text-sm sm:text-base">
+          Get Nia 1.0 today. Free, open-source, and engineered by NDTechHub for developer privacy and deterministic performance.
+        </p>
+
+        <div class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <button class="open-download-modal w-full sm:w-auto inline-flex items-center justify-center space-x-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-bold px-8 py-4 rounded-xl hover:opacity-95 transition glow-cyan text-base">
+            <i class="fa-solid fa-download"></i>
+            <span>Download Standalone Installer (.exe)</span>
+          </button>
+          
+          <a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 glassmorphism hover:bg-white/10 text-white font-medium px-8 py-4 rounded-xl transition border border-white/10">
+            <i class="fa-brands fa-github text-accentCyan"></i>
+            <span>Star on GitHub</span>
+          </a>
+        </div>
+
+        <div class="mt-10 pt-8 border-t border-white/10 text-xs text-slate-400 grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono">
+          <div><span class="text-slate-500">Platform:</span> <span class="text-white">Windows 10 / 11 (64-bit)</span></div>
+          <div><span class="text-slate-500">Release:</span> <span class="text-accentCyan">v1.0.0 Stable</span></div>
+          <div><span class="text-slate-500">Architecture:</span> <span class="text-purple-400">Local Supervisor DAG</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD MODAL -->
+  <div id="download-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glassmorphism-card max-w-lg w-full rounded-3xl p-6 sm:p-8 border border-cyan-500/40 relative shadow-2xl">
+      <!-- Close button -->
+      <button id="close-download-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-2" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-accentCyan flex items-center justify-center text-xl">
+          <i class="fa-brands fa-windows"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-white">Download Nia 1.0</h3>
+          <p class="text-xs text-slate-400 font-mono">v1.0.0 Release • Windows 64-bit</p>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="space-y-4 text-sm text-slate-300">
+        <p>
+          The standalone installer packages the complete PyQt6 desktop runtime, Three.js 3D avatar engine, Whisper voice models, and WhatsApp supervisor.
+        </p>
+
+        <div class="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-2 font-mono text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400">File:</span>
+            <span class="text-accentCyan">Nia-Setup-1.0.exe</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Package Size:</span>
+            <span class="text-white">~510 MB</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">License Required:</span>
+            <span class="text-emerald-400">₹99 Test Flight / Pro Pass</span>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 pt-1">
+          <!-- Option 1: Buy Test Flight Key -->
+          <button id="modal-start-test-flight-btn" class="open-buy-modal w-full inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-extrabold py-3.5 rounded-xl hover:opacity-95 transition glow-cyan text-sm" data-tier="test_flight" data-price="₹99 / $1">
+            <i class="fa-solid fa-rocket"></i>
+            <span>Get 7-Day Test Flight Key (₹99 / $1)</span>
+          </button>
+
+          <!-- Option 2: Download Installer -->
+          <a href="/download/installer" class="w-full inline-flex items-center justify-center space-x-2 glassmorphism hover:bg-white/10 text-white font-medium py-3 rounded-xl transition border border-white/10 text-xs">
+            <i class="fa-solid fa-download text-accentCyan"></i>
+            <span>Download Installer (.exe)</span>
+          </a>
+        </div>
+
+        <div class="text-center pt-2">
+          <p class="text-[11px] text-slate-400">
+            Requires active key to run. 7-Day Test Flight auto-converts to Pro on Day 7, or cancel anytime.
+          </p>
+          <a href="#pricing" class="text-xs text-accentCyan hover:underline font-mono mt-1 inline-block">
+            View Lifetime BYOK Pass (₹6,999) →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUY PRO LICENSE MODAL -->
+  <div id="buy-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="glassmorphism-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-accentCyan/50 relative shadow-2xl glow-cyan">
+      <button id="close-buy-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-2" aria-label="Close modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 to-purple-600 flex items-center justify-center text-xl text-black font-bold">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <h3 id="modal-tier-title" class="text-xl font-bold text-white">Nia Pro Agent</h3>
+          <p id="modal-tier-price" class="text-xs text-accentCyan font-mono">₹99 Test Flight / ₹1,799 mo</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-sm text-slate-300">
+        <p id="modal-tier-desc" class="text-xs text-slate-300 leading-relaxed">
+          Unlock unlimited machine access, all 4 3D avatars, Word document generator, and lifetime developer updates.
+        </p>
+
+        <form id="license-purchase-form" class="space-y-3 pt-2">
+          <input type="hidden" id="selected-tier-input" value="pro">
+          <div>
+            <label class="block text-[11px] font-mono uppercase text-slate-400 mb-1">Your Delivery Email</label>
+            <input type="email" id="buyer-email" required placeholder="name@domain.com" class="w-full px-4 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-sm focus:border-accentCyan focus:outline-none font-sans">
+          </div>
+
+          <button type="submit" id="pay-button" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black font-bold text-sm hover:opacity-95 transition glow-cyan flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-lock"></i>
+            <span id="pay-btn-text">Proceed to Checkout (₹99 / $1)</span>
+          </button>
+        </form>
+
+        <div id="license-generated-box" class="hidden p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 text-center space-y-3">
+          <div class="text-xs text-emerald-400 font-bold font-mono">PAYMENT VERIFIED & KEY GENERATED!</div>
+          <div class="text-xs text-slate-300">Your License Key:</div>
+          <div id="generated-key-display" class="font-mono text-base font-bold text-accentCyan bg-black/60 p-2 rounded-lg select-all border border-white/10"></div>
+          <p class="text-[11px] text-slate-300">Copy this key. You will be prompted to enter it when you launch Nia.</p>
+          <a href="/download/installer" class="w-full inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-bold py-3 rounded-xl hover:opacity-95 transition glow-cyan text-xs">
+            <i class="fa-solid fa-download"></i>
+            <span>Download Nia-Setup-1.0.exe Now</span>
+          </a>
+        </div>
+
+        <div class="pt-3 border-t border-white/10 text-center text-[11px] text-slate-400 font-mono">
+          <span>Protected by 256-bit encryption • Instant key delivery</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 py-12 bg-black/60">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center space-x-3">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-purple-600 flex items-center justify-center font-bold text-black text-sm">
+          N
+        </div>
+        <div>
+          <span class="text-base font-bold text-white">NDTechHub</span>
+          <p class="text-xs text-slate-400">Autonomous Systems & Sovereign AI Agent Runtime</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-6 text-sm text-slate-400 font-medium">
+        <a href="#why-nia" class="hover:text-accentCyan transition">Why Nia</a>
+        <a href="#simulator" class="hover:text-accentCyan transition">Simulator</a>
+        <a href="#comparison" class="hover:text-accentCyan transition">Comparison</a>
+        <a href="#quickstart" class="hover:text-accentCyan transition">Install</a>
+        <a href="https://github.com/manojalig2979-dot/nia0.1" target="_blank" class="hover:text-accentCyan transition">GitHub</a>
+      </div>
+
+      <p class="text-xs text-slate-500 font-mono">
+        &copy; 2026 NDTechHub. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Core JavaScript -->
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

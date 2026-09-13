@@ -1162,6 +1162,7 @@ class SettingsView(QWidget):
         self.edit_tts_voice = mk_edit(self.config.get("voice_settings", {}).get("tts_voice", "hi-IN-SwaraNeural"))
         self.edit_wa_num = mk_edit(self.config.get("user_profile", {}).get("whatsapp_number", ""))
         self.edit_user_name = mk_edit(self.config.get("user_profile", {}).get("name", "manoj"))
+        self.edit_license_key = mk_edit(self.config.get("license_key", ""))
 
         form_lay.addWidget(mk_lbl("AI Model (e.g. ollama/llama3.2):"), 0, 0)
         form_lay.addWidget(self.edit_llm_model, 0, 1)
@@ -1180,6 +1181,9 @@ class SettingsView(QWidget):
 
         form_lay.addWidget(mk_lbl("User Name:"), 5, 0)
         form_lay.addWidget(self.edit_user_name, 5, 1)
+
+        form_lay.addWidget(mk_lbl("License Key (₹99 Test / Pro):"), 6, 0)
+        form_lay.addWidget(self.edit_license_key, 6, 1)
 
         c_lay.addLayout(form_lay)
 
@@ -1220,6 +1224,14 @@ class SettingsView(QWidget):
         self.config["voice_settings"]["tts_voice"] = self.edit_tts_voice.text().strip()
         self.config["user_profile"]["whatsapp_number"] = self.edit_wa_num.text().strip()
         self.config["user_profile"]["name"] = self.edit_user_name.text().strip()
+        self.config["license_key"] = self.edit_license_key.text().strip()
+
+        # Re-check license
+        try:
+            from license_guard import check_license_status
+            self.config["license_info"] = check_license_status(license_key=self.config["license_key"])
+        except Exception:
+            pass
 
         try:
             with open(os.path.join(os.path.dirname(__file__), "config.json"), "w", encoding="utf-8") as f:

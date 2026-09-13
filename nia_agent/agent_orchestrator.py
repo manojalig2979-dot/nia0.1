@@ -1,7 +1,13 @@
 import json
 import os
 import subprocess
-import litellm
+
+try:
+    from google import genai as google_genai
+    from google.genai import types as genai_types
+    GOOGLE_GENAI_AVAILABLE = True
+except ImportError:
+    GOOGLE_GENAI_AVAILABLE = False
 try:
     from system_diagnostics import SystemDiagnostics
 except ImportError:  # pragma: no cover - compatibility when importing from project root
@@ -20,16 +26,33 @@ class NiaAgentOrchestrator:
         self.config = config
         self.user_name = config["user_profile"]["name"]
         self.whatsapp_num = config["user_profile"]["whatsapp_number"]
+        import sys
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(__file__)
+
         self.diagnostics = SystemDiagnostics(
             config,
-            log_dir=os.path.join(os.path.dirname(__file__), "logs")
+            log_dir=os.path.join(base_dir, "logs")
         )
         
         api_key = config["api_keys"].get("gemini_api_key") or config["api_keys"].get("openai_api_key")
         if api_key:
             os.environ["GEMINI_API_KEY"] = api_key
             os.environ["OPENAI_API_KEY"] = api_key
-            litellm.api_key = api_key
+        
+        # Native Google GenAI client (supports AQ. keys natively)
+        self._genai_client = None
+        self._genai_model = None
+        gemini_key = config["api_keys"].get("gemini_api_key")
+        if gemini_key and GOOGLE_GENAI_AVAILABLE:
+            try:
+                self._genai_client = google_genai.Client(api_key=gemini_key)
+                self._genai_model = config.get("llm_settings", {}).get("model", "gemini/gemini-3.6-flash").replace("gemini/", "")
+                print(f"[Nia] Using native google-genai SDK with model: {self._genai_model}")
+            except Exception as e:
+                print(f"[Nia] google-genai init failed, will use litellm: {e}")
             
         allowed_apps = config.get("permissions", {}).get("allowed_apps", [])
         self.desktop = DesktopTools(config["system_paths"]["projects_dir"], allowed_apps=allowed_apps)
@@ -42,10 +65,10 @@ class NiaAgentOrchestrator:
         self.github_automation = GitHubAutomation(config["system_paths"]["projects_dir"])
         
         from memory_manager import MemoryManager
-        self.memory = MemoryManager(os.path.join(os.path.dirname(__file__), "memory_bank.json"))
+        self.memory = MemoryManager(os.path.join(base_dir, "memory_bank.json"))
         
         from schedule_manager import ScheduledWorkflowManager
-        self.schedule_manager = ScheduledWorkflowManager(os.path.join(os.path.dirname(__file__), "scheduled_workflows.json"))
+        self.schedule_manager = ScheduledWorkflowManager(os.path.join(base_dir, "scheduled_workflows.json"))
         self.schedule_manager.start()
         
         # Tools definitions for function calling
@@ -627,13 +650,28 @@ Your persona rules:
                 }
             ]
             
-            # Use gemini flash or a vision-capable model
-            # Note: We hardcode gemini flash here or fallback to openai because ollama vision support can be tricky via LiteLLM without a specific model like llava.
+            # Use native google-genai SDK for vision if available
+            if self._genai_client:
+                import base64 as _b64
+                with open(img_path, "rb") as _f:
+                    img_b64 = _b64.b64encode(_f.read()).decode("utf-8")
+                vision_response = self._genai_client.models.generate_content(
+                    model=self._genai_model,
+                    contents=[
+                        genai_types.Part.from_bytes(data=_b64.b64decode(img_b64), mime_type="image/png"),
+                        genai_types.Part.from_text(text=f"Look at my screen and answer in Hinglish: {query}")
+                    ]
+                )
+                return vision_response.text
+            # Fallback to litellm for non-Gemini vision models
+            import litellm
+            api_key = self.config["api_keys"].get("openai_api_key") or self.config["api_keys"].get("gemini_api_key")
+            if api_key:
+                litellm.api_key = api_key
             model_to_use = self.config.get("llm_settings", {}).get("vision_model", "gemini/gemini-3.6-flash")
-            completion_options = {"timeout": 30}
+            completion_options = {"timeout": 60}
             if model_to_use.startswith("ollama/"):
                 completion_options["api_base"] = self.config.get("llm_settings", {}).get("base_url")
-            
             response = litellm.completion(
                 model=model_to_use,
                 messages=messages,
@@ -643,22 +681,139 @@ Your persona rules:
         except Exception as e:
             return f"Screen analyze karte samay ek error aayi: {str(e)}"
 
+    def _build_genai_tools(self):
+        """Convert self.tools (OpenAI format) into google-genai FunctionDeclaration list."""
+        declarations = []
+        for tool in self.tools:
+            fn = tool["function"]
+            params = fn.get("parameters", {})
+            properties = {}
+            for prop_name, prop_schema in params.get("properties", {}).items():
+                prop_type = prop_schema.get("type", "string").upper()
+                type_map = {
+                    "STRING": genai_types.Type.STRING,
+                    "INTEGER": genai_types.Type.INTEGER,
+                    "NUMBER": genai_types.Type.NUMBER,
+                    "BOOLEAN": genai_types.Type.BOOLEAN,
+                    "ARRAY": genai_types.Type.ARRAY,
+                    "OBJECT": genai_types.Type.OBJECT,
+                }
+                genai_type = type_map.get(prop_type, genai_types.Type.STRING)
+                if genai_type == genai_types.Type.ARRAY:
+                    items_schema = prop_schema.get("items", {})
+                    items_type_str = items_schema.get("type", "string").upper()
+                    items_type = type_map.get(items_type_str, genai_types.Type.STRING)
+                    properties[prop_name] = genai_types.Schema(
+                        type=genai_type,
+                        description=prop_schema.get("description", ""),
+                        items=genai_types.Schema(type=items_type)
+                    )
+                else:
+                    properties[prop_name] = genai_types.Schema(
+                        type=genai_type,
+                        description=prop_schema.get("description", "")
+                    )
+            required = params.get("required", [])
+            declarations.append(
+                genai_types.FunctionDeclaration(
+                    name=fn["name"],
+                    description=fn.get("description", ""),
+                    parameters=genai_types.Schema(
+                        type=genai_types.Type.OBJECT,
+                        properties=properties,
+                        required=required
+                    )
+                )
+            )
+        return [genai_types.Tool(function_declarations=declarations)]
+
     def process_command(self, user_input: str) -> str:
         user_input = user_input.strip()
         if user_input.lower() in {"check system status", "system status", "check diagnostics", "run diagnostics"}:
             return self.diagnostics.get_status_summary()
 
+        # --- Native google-genai path (preferred, supports AQ. keys natively) ---
+        if self._genai_client:
+            return self._process_with_genai(user_input)
+
+        # --- LiteLLM fallback path ---
+        return self._process_with_litellm(user_input)
+
+    def _process_with_genai(self, user_input: str) -> str:
+        """Process command using native google-genai SDK via Chat API (supports AQ. keys + tools)."""
+        system_prompt = self.get_system_prompt()
+
+        # --- Pass 1: Try with tools via Chat API ---
+        try:
+            genai_tools = self._build_genai_tools()
+            chat = self._genai_client.chats.create(
+                model=self._genai_model,
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    tools=genai_tools,
+                    automatic_function_calling=genai_types.AutomaticFunctionCallingConfig(disable=True),
+                )
+            )
+            response = chat.send_message(user_input)
+
+            # Check for tool calls in the response
+            tool_outputs = []
+            for part in response.candidates[0].content.parts:
+                if part.function_call:
+                    fn_name = part.function_call.name
+                    fn_args = dict(part.function_call.args)
+                    print(f"[Nia Tool Dispatch]: Executing {fn_name}({fn_args})")
+                    result = self._execute_tool(fn_name, fn_args)
+                    tool_outputs.append((fn_name, result))
+
+            if tool_outputs:
+                tool_parts = [genai_types.Part.from_function_response(
+                    name=n, response={"result": r}
+                ) for n, r in tool_outputs]
+                follow_up = chat.send_message(
+                    genai_types.Content(role="user", parts=tool_parts)
+                )
+                return follow_up.text or " | ".join(r for _, r in tool_outputs)
+
+            text = response.text
+            if text:
+                return text
+
+        except Exception as e:
+            print(f"[Nia genai (with tools) error]: {e}")
+
+        # --- Pass 2: Retry without tools (plain knowledge question) ---
+        try:
+            response = self._genai_client.models.generate_content(
+                model=self._genai_model,
+                contents=user_input,
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                )
+            )
+            text = response.text
+            if text:
+                return text
+        except Exception as e:
+            print(f"[Nia genai (plain) error]: {e}")
+
+        print("[Nia] All genai attempts failed, using local fallback")
+        return self._fallback_local_intent(user_input)
+
+    def _process_with_litellm(self, user_input: str) -> str:
+        """Process command using LiteLLM (fallback)."""
+        import litellm
+        api_key = self.config["api_keys"].get("openai_api_key") or self.config["api_keys"].get("gemini_api_key")
+        if api_key:
+            litellm.api_key = api_key
         messages = [
             {"role": "system", "content": self.get_system_prompt()},
             {"role": "user", "content": user_input}
         ]
-        
-        # Read configured model
         llm_model = self.config.get("llm_settings", {}).get("model", "gemini/gemini-3.6-flash")
-        completion_options = {"timeout": 12}
+        completion_options = {"timeout": 60}
         if llm_model.startswith("ollama/"):
             completion_options["api_base"] = self.config.get("llm_settings", {}).get("base_url")
-        
         try:
             response = litellm.completion(
                 model=llm_model,
@@ -672,19 +827,15 @@ Your persona rules:
             return self._fallback_local_intent(user_input)
 
         choice = response.choices[0].message
-        
-        # If model decided to call tools
         if choice.tool_calls:
             tool_outputs = []
+            fn_name = None
             for tool_call in choice.tool_calls:
                 fn_name = tool_call.function.name
                 fn_args = json.loads(tool_call.function.arguments)
                 print(f"[Nia Tool Dispatch]: Executing {fn_name}({fn_args})")
-                
                 result = self._execute_tool(fn_name, fn_args)
                 tool_outputs.append(f"{fn_name} result: {result}")
-            
-            # Follow-up completion for verbal Hinglish summary
             try:
                 follow_up = litellm.completion(
                     model=llm_model,
@@ -698,7 +849,7 @@ Your persona rules:
             except Exception:
                 return " | ".join(tool_outputs)
         else:
-            return choice.content
+            return choice.content or self._fallback_local_intent(user_input)
 
     def _fallback_local_intent(self, user_input: str) -> str:
         c = user_input.lower().strip()

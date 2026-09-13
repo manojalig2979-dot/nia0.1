@@ -18,8 +18,7 @@
         "whisper_model_size": "base"
     },
     "llm_settings": {
-        "model": "gemini/gemini-3.6-flash",
-        "base_url": "http://127.0.0.1:11434"
+        "model": "gemini/gemini-1.5-flash"
     },
     "permissions": {
         "allowed_apps": [

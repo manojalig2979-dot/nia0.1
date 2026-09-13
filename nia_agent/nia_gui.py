@@ -35,7 +35,13 @@ from voice_listener import VoiceListenerThread
 from bot3d_widget import make_3d_bot_widget
 
 # ── Asset paths ──────────────────────────────────────────
-BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS
+    STATE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    STATE_DIR = BASE_DIR
+    
 AVATAR_PATH = os.path.join(BASE_DIR, "nia_avatar.jpg")
 
 # ── Colours ──────────────────────────────────────────────
@@ -1816,6 +1822,23 @@ class NiaMainWindow(QMainWindow):
         self.home_view.add_chat_bubble(init_msg, is_user=False)
         self.chat_view.add_chat_bubble(init_msg, is_user=False)
 
+        # License / ₹99 Test Flight status advisory
+        lic_info = self.config.get("license_info", {})
+        lic_st = lic_info.get("status", "")
+        if lic_st == "key_required":
+            lic_msg = "⚠️ [License Required] Please enter your ₹99 Test Flight or Pro license key in Settings to activate Nia."
+            self.home_view.add_chat_bubble(lic_msg, is_user=False)
+            self.chat_view.add_chat_bubble(lic_msg, is_user=False)
+        elif lic_st == "trial_expired":
+            lic_msg = "⚠️ [Test Flight Expired] Your 7-day ₹99 Test Flight has expired. Please upgrade or enter a Pro key in Settings."
+            self.home_view.add_chat_bubble(lic_msg, is_user=False)
+            self.chat_view.add_chat_bubble(lic_msg, is_user=False)
+        elif lic_st == "licensed" and lic_info.get("tier") == "test_flight":
+            rem = lic_info.get("days_remaining", 7)
+            lic_msg = f"🚀 Nia 7-Day Test Flight Active ({rem} day(s) remaining)."
+            self.home_view.add_chat_bubble(lic_msg, is_user=False)
+            self.chat_view.add_chat_bubble(lic_msg, is_user=False)
+
         # Show the window INSTANTLY
         self.showMaximized()
         self._setup_tray_icon()
@@ -1828,8 +1851,11 @@ class NiaMainWindow(QMainWindow):
     def _on_ai_ready(self, agent, voice):
         self.agent = agent
         self.voice = voice
-        if hasattr(self, 'wa_manager') and self.wa_manager:
+        if agent and hasattr(self, 'wa_manager') and self.wa_manager:
             self.agent.browser.wa_manager = self.wa_manager
+        if not agent:
+            print("[NIA] Agent failed to initialize — AI commands unavailable.")
+            return
         self.status_bar.set_online()
 
         # ── Connect VoiceEngine to 3D Bot Avatar for speaking/idle state sync ──
@@ -1851,7 +1877,7 @@ class NiaMainWindow(QMainWindow):
         # ── Start Reminder Manager ──
         try:
             from reminder_manager import ReminderManager
-            self.agent.reminder_manager = ReminderManager(os.path.join(BASE_DIR, "reminders.json"))
+            self.agent.reminder_manager = ReminderManager(os.path.join(STATE_DIR, "reminders.json"))
             self.agent.reminder_manager.reminder_triggered.connect(self._on_reminder_triggered)
             self.agent.reminder_manager.start()
         except Exception as e:

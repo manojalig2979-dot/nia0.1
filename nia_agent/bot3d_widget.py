@@ -17,7 +17,11 @@ except ImportError:
     _WEB_ENGINE_AVAILABLE = False
 
 # ── Asset path ────────────────────────────────────────────
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+import sys
+if getattr(sys, 'frozen', False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BOT_HTML   = os.path.join(BASE_DIR, "nia_bot.html")
 
 

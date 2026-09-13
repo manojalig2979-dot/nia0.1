@@ -24,6 +24,18 @@ venv/
 *.log
 nia_agent/mouth_frames/generated/
 
+# Build artifacts, dist binaries, and node modules
+build/
+dist/
+node_modules/
+downloads/
+nia_agent/build/
+nia_agent/dist/
+nia-website/node_modules/
+nia-website/downloads/
+nia-website/data/trials.json
+nia-website/data/licenses.json
+
 # OS/editor files
 .vscode/
 .DS_Store
