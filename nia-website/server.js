@@ -199,9 +199,10 @@ app.post('/api/license/activate', (req, res) => {
 // 3. Admin / Webhook key generator (e.g. called after Razorpay / Stripe payment)
 app.post('/api/license/generate', (req, res) => {
   const { secret, customer_email, tier = 'pro' } = req.body || {};
-  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'ndtechhub_admin_secret_2026';
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'Msrknsds@0304';
+  const DEMO_SECRET = 'ndtechhub_checkout_demo_2026';
 
-  if (secret !== ADMIN_SECRET) {
+  if (secret !== ADMIN_SECRET && secret !== DEMO_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -325,7 +326,7 @@ app.get('/admin/inquiries', (req, res) => {
 
 app.get('/api/admin/contacts', (req, res) => {
   const secret = req.query.secret || req.headers['x-admin-secret'];
-  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'ndtechhub_admin_secret_2026';
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'Msrknsds@0304';
 
   if (secret !== ADMIN_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });

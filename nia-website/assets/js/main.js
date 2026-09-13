@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            secret: 'ndtechhub_admin_secret_2026',
+            secret: 'ndtechhub_checkout_demo_2026',
             customer_email: email,
             tier: tier
           })
