@@ -226,19 +226,19 @@ app.post('/api/license/generate', (req, res) => {
   });
 });
 
+const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/manojalig2979-dot/nia0.1/releases/download/v1.0.0/Nia-Setup-1.0.exe';
+
 // API endpoint to check release status
 app.get('/api/status', (req, res) => {
   const filePath = path.join(__dirname, 'downloads', 'Nia-Setup-1.0.exe');
   const agentExePath = path.join(__dirname, '..', 'nia_agent', 'dist', 'NiaAgent.exe');
   
-  let installerFound = false;
-  let fileSizeMb = 0;
+  let installerFound = true;
+  let fileSizeMb = "510.8";
 
   if (fs.existsSync(filePath)) {
-    installerFound = true;
     fileSizeMb = (fs.statSync(filePath).size / (1024 * 1024)).toFixed(1);
   } else if (fs.existsSync(agentExePath)) {
-    installerFound = true;
     fileSizeMb = (fs.statSync(agentExePath).size / (1024 * 1024)).toFixed(1);
   }
 
@@ -248,6 +248,7 @@ app.get('/api/status', (req, res) => {
     platform: 'Windows 10/11 (64-bit)',
     installerAvailable: installerFound,
     installerSizeMb: fileSizeMb,
+    releaseDownloadUrl: GITHUB_RELEASE_DOWNLOAD_URL,
     commercial_tiers: {
       test_flight: { price_inr: 99, price_usd: 1, duration_days: 7, auto_converts_to: "pro" },
       starter: { price_inr: 899, price_usd: 12, billing: "monthly", smart_tasks: 500 },
@@ -263,51 +264,18 @@ app.get('/api/status', (req, res) => {
 // Single-click binary download endpoint
 app.get('/download/installer', (req, res) => {
   const primaryPath = path.join(__dirname, 'downloads', 'Nia-Setup-1.0.exe');
-  const fallbackPath = path.join(__dirname, '..', 'nia_agent', 'dist', 'NiaAgent.exe');
   
-  let targetFile = null;
   if (fs.existsSync(primaryPath)) {
-    targetFile = primaryPath;
-  } else if (fs.existsSync(fallbackPath)) {
-    targetFile = fallbackPath;
-  }
-
-  if (targetFile) {
-    const stat = fs.statSync(targetFile);
+    const stat = fs.statSync(primaryPath);
     res.setHeader('Content-Disposition', 'attachment; filename="Nia-Setup-1.0.exe"');
     res.setHeader('Content-Type', 'application/vnd.microsoft.portable-executable');
     res.setHeader('Content-Length', stat.size);
-    
-    const fileStream = fs.createReadStream(targetFile);
-    fileStream.pipe(res);
-  } else {
-    res.status(404).send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Packaging Binary | NDTechHub</title>
-        <style>
-          body { background: #08090D; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-          .card { background: #12141C; padding: 40px; border-radius: 16px; border: 1px solid #1e293b; max-width: 520px; text-align: center; }
-          h2 { color: #00F5D4; }
-          code { color: #00F5D4; background: #08090D; padding: 4px 8px; border-radius: 4px; font-family: monospace; }
-          a { color: #00F5D4; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: bold; border: 1px solid #00F5D4; padding: 10px 20px; border-radius: 8px; }
-          a:hover { background: #00F5D4; color: #000; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <h2>Binary Build in Progress</h2>
-          <p>The standalone binary is currently being compiled or packaged.</p>
-          <p>You can package it immediately by running in terminal: <br><br><code>python build_installer.py</code></p>
-          <a href="/">← Return to Nia 1.0 Homepage</a>
-        </div>
-      </body>
-      </html>
-    `);
+    const fileStream = fs.createReadStream(primaryPath);
+    return fileStream.pipe(res);
   }
+
+  // Fallback to high-speed CDN download from official GitHub Release
+  return res.redirect(302, GITHUB_RELEASE_DOWNLOAD_URL);
 });
 
 // Single Page Application fallback
