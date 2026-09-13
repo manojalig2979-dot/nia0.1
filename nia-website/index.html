@@ -40,7 +40,7 @@
 <body class="bg-brandDark text-slate-200 font-sans antialiased selection:bg-accentCyan selection:text-black bg-grid-pattern">
 
   <!-- NAVIGATION -->
-  <header class="sticky top-0 z-50 glassmorphism border-b border-white/10">
+  <header class="liquid-glass-header">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <!-- Logo -->
       <a href="#" class="flex items-center space-x-3 group">
@@ -59,24 +59,24 @@
       </a>
 
       <!-- Desktop Nav -->
-      <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-300">
-        <a href="#why-nia" class="hover:text-accentCyan transition">Why Nia</a>
-        <a href="#simulator" class="hover:text-accentCyan transition">Live DAG Demo</a>
-        <a href="#features" class="hover:text-accentCyan transition">Capabilities</a>
-        <a href="#about" class="hover:text-accentCyan transition">About Us</a>
-        <a href="#pricing" class="hover:text-accentCyan transition text-accentCyan">Pricing & Test Flight</a>
-        <a href="#faq" class="hover:text-accentCyan transition">FAQ</a>
-        <a href="#contact" class="hover:text-accentCyan transition">Contact</a>
+      <nav class="hidden lg:flex items-center space-x-2 text-sm font-medium text-slate-300">
+        <a href="#why-nia" class="liquid-nav-link">Why Nia</a>
+        <a href="#simulator" class="liquid-nav-link">Live DAG Demo</a>
+        <a href="#features" class="liquid-nav-link">Capabilities</a>
+        <a href="#about" class="liquid-nav-link">About Us</a>
+        <a href="#pricing" class="liquid-nav-link text-accentCyan font-bold">Pricing & Test Flight</a>
+        <a href="#faq" class="liquid-nav-link">FAQ</a>
+        <a href="#contact" class="liquid-nav-link">Contact</a>
       </nav>
 
       <!-- Action Buttons -->
       <div class="flex items-center space-x-3">
-        <button class="open-buy-modal hidden sm:inline-flex items-center space-x-2 text-xs font-bold text-slate-200 hover:text-white glassmorphism px-3.5 py-2.5 rounded-full border border-cyan-500/30 hover:border-accentCyan transition" data-tier="test_flight" data-price="₹99 / $1">
+        <button class="open-buy-modal hidden sm:inline-flex items-center space-x-2 text-xs font-bold text-slate-200 hover:text-white glassmorphism px-3.5 py-2.5 rounded-full border border-cyan-500/30 hover:border-accentCyan transition shadow-lg" data-tier="test_flight" data-price="₹99 / $1">
           <i class="fa-solid fa-rocket text-accentCyan"></i>
           <span>Test Flight ₹99</span>
         </button>
 
-        <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black px-5 py-2.5 rounded-full font-bold text-sm hover:opacity-95 transition glow-cyan">
+        <button class="open-download-modal inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 text-black px-5 py-2.5 rounded-full font-bold text-sm hover:opacity-95 transition glow-cyan shadow-lg">
           <i class="fa-solid fa-download"></i>
           <span>Get Nia 1.0</span>
         </button>
@@ -1695,12 +1695,37 @@ cd "nia0.1"</pre>
           <span>All AI Core Pipelines Operational</span>
         </div>
 
-        <!-- Social / Community Channels -->
-        <div class="social-links">
-          <a href="https://github.com/manojalig2979-dot/nia0.1" aria-label="GitHub Repository" target="_blank"><i data-lucide="github"></i></a>
-          <a href="https://x.com/NDTechHub" aria-label="X Twitter" target="_blank"><i data-lucide="twitter"></i></a>
-          <a href="https://discord.gg" aria-label="Discord Community" target="_blank"><i data-lucide="message-square"></i></a>
-          <a href="https://linkedin.com" aria-label="LinkedIn" target="_blank"><i data-lucide="linkedin"></i></a>
+        <!-- Social / Community Channels (2026 Liquid Glass) -->
+        <div class="liquid-social-container">
+          <!-- Facebook -->
+          <a href="https://www.facebook.com/NDG0304" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-facebook" aria-label="Facebook Profile" title="Facebook - NDG0304">
+            <i class="fa-brands fa-facebook-f"></i>
+          </a>
+
+          <!-- GitHub -->
+          <a href="https://github.com/manojalig2979-dot" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-github" aria-label="GitHub Profile" title="GitHub - manojalig2979-dot">
+            <i class="fa-brands fa-github"></i>
+          </a>
+
+          <!-- Instagram -->
+          <a href="https://www.instagram.com/NDG0304" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-instagram" aria-label="Instagram Profile" title="Instagram - NDG0304">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+
+          <!-- LinkedIn -->
+          <a href="https://www.linkedin.com/in/ndg0304" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-linkedin" aria-label="LinkedIn Profile" title="LinkedIn - ndg0304">
+            <i class="fa-brands fa-linkedin-in"></i>
+          </a>
+
+          <!-- WhatsApp -->
+          <a href="https://wa.me/+918587001712" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-whatsapp" aria-label="WhatsApp Contact" title="WhatsApp - +91 8587001712">
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+
+          <!-- X / Twitter -->
+          <a href="https://x.com/NDG0304" target="_blank" rel="noopener noreferrer" class="liquid-social-btn social-x" aria-label="X Twitter Profile" title="X (Twitter) - NDG0304">
+            <i class="fa-brands fa-x-twitter"></i>
+          </a>
         </div>
       </div>
 
