@@ -532,7 +532,7 @@ class SocialView(QWidget):
         qmlay.setContentsMargins(8, 4, 8, 4)
         qmlay.setSpacing(8)
 
-        self.wa_target_phone = QLineEdit("+918979640795")
+        self.wa_target_phone = QLineEdit()
         self.wa_target_phone.setFixedWidth(140)
         self.wa_target_phone.setFixedHeight(36)
         self.wa_target_phone.setPlaceholderText("Phone / Number")
@@ -1161,7 +1161,7 @@ class SettingsView(QWidget):
         self.edit_openai_key = mk_edit(self.config.get("api_keys", {}).get("openai_api_key", ""), True)
         self.edit_tts_voice = mk_edit(self.config.get("voice_settings", {}).get("tts_voice", "hi-IN-SwaraNeural"))
         self.edit_wa_num = mk_edit(self.config.get("user_profile", {}).get("whatsapp_number", ""))
-        self.edit_user_name = mk_edit(self.config.get("user_profile", {}).get("name", "manoj"))
+        self.edit_user_name = mk_edit(self.config.get("user_profile", {}).get("name", "User"))
         self.edit_license_key = mk_edit(self.config.get("license_key", ""))
 
         form_lay.addWidget(mk_lbl("AI Model (e.g. ollama/llama3.2):"), 0, 0)

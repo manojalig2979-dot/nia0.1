@@ -233,7 +233,7 @@ def execute_unified_command(agent, cmd: str) -> str:
 
     # 16. Common Conversational / Greeting fallbacks (instant, zero LLM needed)
     from datetime import datetime
-    user_name = getattr(agent, "user_name", "Manoj")
+    user_name = getattr(agent, "user_name", "User")
     if any(w in c for w in ("hello", "hi", "namaste", "hey", "नमस्ते")):
         return f"Namaste {user_name} ji! Main Nia hoon. Main aapki kya madad kar sakti hoon?"
     elif any(w in c for w in ("kaise ho", "kya haal", "how are you")):
@@ -816,11 +816,11 @@ class RightPanel(GlassPanel):
         self.time_lbl.setText(now.strftime("%I:%M %p"))
         hour = now.hour
         if hour < 12:
-            greet = "Good Morning, Manoj!"
+            greet = "Good Morning!"
         elif hour < 17:
-            greet = "Good Afternoon, Manoj!"
+            greet = "Good Afternoon!"
         else:
-            greet = "Good Evening, Manoj!"
+            greet = "Good Evening!"
         self.greet_lbl.setText(greet)
 
         self.cpu_ring.set_value(int(psutil.cpu_percent()))

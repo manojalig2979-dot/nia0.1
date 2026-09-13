@@ -53,7 +53,7 @@ def run_first_time_setup():
     print("=" * 65)
     print("Please provide the required settings to personalize Nia for you.\n")
     
-    user_name = input("Enter your full name (e.g., Manoj): ").strip() or "User"
+    user_name = input("Enter your full name (e.g., Alex): ").strip() or "User"
     license_key = input("Enter your Nia License Key (₹99 Test Flight / Pro / Lifetime): ").strip()
     whatsapp_number = input("Enter your registered WhatsApp number with country code (e.g., +919876543210): ").strip()
     openai_key = input("Enter your OpenAI/LiteLLM API Key (or press enter if using ENV): ").strip()
