@@ -67,6 +67,8 @@
         <a href="/pricing" class="bento-pill bento-pill-highlight">Pricing</a>
         <a href="/faq" class="bento-pill">FAQ</a>
         <a href="/contact" class="bento-pill">Contact</a>
+        <a href="login.html" id="nav-login-btn" class="bento-pill text-accentCyan font-bold">Login</a>
+        <a href="dashboard.html" id="nav-dashboard-btn" class="bento-pill text-accentPurple font-bold" style="display: none;">Dashboard</a>
       </nav>
 
       <!-- Bento Pod 3: Actions -->
@@ -1827,6 +1829,13 @@ cd "nia0.1"</pre>
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();
     }
+  </script>
+
+  <!-- Firebase Auth Integration -->
+  <script type="module" src="assets/js/firebase-config.js"></script>
+  <script type="module">
+    import { checkAuthState } from './assets/js/auth.js';
+    checkAuthState(false);
   </script>
 </body>
 </html>

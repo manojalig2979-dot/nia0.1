@@ -27,5 +27,30 @@
             "code",
             "chrome"
         ]
+    },
+    "smart_home": {
+        "hue_bridge_ip": "",
+        "smartthings_token": ""
+    },
+    "smart_home_devices": {
+        "office light": {
+            "brand": "tuya",
+            "ip": "192.168.1.100",
+            "device_id": "tuya_device_id_here",
+            "local_key": "tuya_local_key_here",
+            "version": 3.3
+        },
+        "living room fan": {
+            "brand": "kasa",
+            "ip": "192.168.1.101"
+        },
+        "bedroom light": {
+            "brand": "hue",
+            "name": "Hue color lamp 1"
+        },
+        "tv": {
+            "brand": "samsung",
+            "device_id": "smartthings_device_id_here"
+        }
     }
 }

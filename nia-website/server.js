@@ -3,7 +3,18 @@ const path = require('path');
 const helmet = require('helmet');
 const compression = require('compression');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
 
+// Configure NodeMailer transporter (Dummy configuration for local testing, replace with real credentials in production)
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
+    port: process.env.SMTP_PORT || 2525,
+    auth: {
+        user: process.env.SMTP_USER || 'your_username',
+        pass: process.env.SMTP_PASS || 'your_password'
+    }
+});
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -225,6 +236,62 @@ app.post('/api/license/generate', (req, res) => {
     tier,
     customer_email
   });
+});
+
+// 4. Payment Gateway Webhook (Razorpay/Stripe)
+app.post('/api/payment-webhook', async (req, res) => {
+  // In production, verify the webhook signature from Stripe/Razorpay here
+  const { payment_status, customer_email, tier = 'pro' } = req.body || {};
+
+  if (payment_status !== 'success' || !customer_email) {
+    return res.status(400).json({ error: 'Invalid payload or payment not successful' });
+  }
+
+  // Generate License
+  const randomSegment = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+  const newKey = `NIA-${randomSegment()}-${randomSegment()}-${randomSegment()}`;
+
+  const licenses = loadJsonDb(LICENSES_DB_PATH);
+  licenses[newKey] = {
+    created_at: new Date().toISOString(),
+    customer_email: customer_email,
+    tier: tier,
+    bound_machine_id: null,
+    status: 'active',
+    payment_id: req.body.payment_id || uuidv4() // Use passed payment ID or generate one
+  };
+  saveJsonDb(LICENSES_DB_PATH, licenses);
+
+  // Send Email
+  const mailOptions = {
+    from: '"NIA Support" <support@ndtechhub.com>',
+    to: customer_email,
+    subject: `Your NIA ${tier.toUpperCase()} License Key`,
+    html: `
+      <h2>Thank you for your purchase!</h2>
+      <p>Your NIA Desktop Agent is ready to use.</p>
+      <div style="padding: 15px; background-color: #f4f4f4; border-radius: 5px; font-size: 18px; margin: 20px 0;">
+        <strong>Your License Key:</strong> <span style="color: #3d8ef8;">${newKey}</span>
+      </div>
+      <p><strong>How to activate:</strong></p>
+      <ol>
+        <li>Open the NIA Desktop Application.</li>
+        <li>Go to <strong>Settings</strong> > <strong>System & AI Settings</strong>.</li>
+        <li>Paste your License Key into the input field and click Save.</li>
+      </ol>
+      <p>If you haven't downloaded the app yet, <a href="https://ndtechhub.com/downloads">download it here</a>.</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`License key emailed successfully to ${customer_email}`);
+  } catch (err) {
+    console.error('Failed to send email:', err);
+    // Continue anyway so we return 200 OK to the payment gateway
+  }
+
+  res.status(200).json({ received: true, license_key: newKey });
 });
 
 const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/manojalig2979-dot/nia0.1/releases/download/v1.0.0/Nia-Setup-1.0.exe';

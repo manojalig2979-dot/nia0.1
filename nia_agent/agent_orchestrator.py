@@ -20,6 +20,7 @@ from git_review import GitReview
 from project_validator import ProjectValidator
 from ast_indexer import PythonASTIndexer
 from github_automation import GitHubAutomation
+from smart_home import SmartHomeManager
 
 class NiaAgentOrchestrator:
     def __init__(self, config: dict):
@@ -63,6 +64,7 @@ class NiaAgentOrchestrator:
         self.project_validator = ProjectValidator(config["system_paths"]["projects_dir"])
         self.ast_indexer = PythonASTIndexer(config["system_paths"]["projects_dir"])
         self.github_automation = GitHubAutomation(config["system_paths"]["projects_dir"])
+        self.smart_home = SmartHomeManager(os.path.join(base_dir, "config.json"))
         
         from memory_manager import MemoryManager
         self.memory = MemoryManager(os.path.join(base_dir, "memory_bank.json"))
@@ -73,6 +75,21 @@ class NiaAgentOrchestrator:
         
         # Tools definitions for function calling
         self.tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "control_home_appliance",
+                    "description": "Turns a smart home device or electronic appliance on or off.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "device_name": {"type": "string", "description": "The name of the appliance (e.g. office light, fan, tv)."},
+                            "action": {"type": "string", "enum": ["on", "off"], "description": "The action to perform."}
+                        },
+                        "required": ["device_name", "action"]
+                    }
+                }
+            },
             {
                 "type": "function",
                 "function": {
@@ -908,7 +925,9 @@ Your persona rules:
         return f"Namaste {self.user_name} ji! Main aapke desktop commands (jaise open notepad, calculator, chrome, songs, screenshot) directly chala sakti hoon. Aap batayein kya open karna hai?"
 
     def _execute_tool(self, name: str, args: dict) -> str:
-        if name == "open_application":
+        if name == "control_home_appliance":
+            return self.smart_home.control_device(args.get("device_name"), args.get("action"))
+        elif name == "open_application":
             return self.desktop.open_application(args.get("app_name"))
         elif name == "open_vscode_project":
             return self.desktop.open_vscode_project(args.get("project_name"))

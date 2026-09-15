@@ -8,7 +8,7 @@ import os
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QScrollArea, QFrame, QGridLayout, QTextEdit,
-    QSizePolicy
+    QSizePolicy, QComboBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QFont, QColor, QPainter, QBrush, QPen, QPainterPath, QPixmap
@@ -1245,4 +1245,184 @@ class SettingsView(QWidget):
 
         except Exception as e:
             self.command_sent.emit(f"Failed to save settings: {e}")
+
+class SmartHomeView(QWidget):
+    command_sent = pyqtSignal(str)
+
+    def __init__(self, config: dict, parent=None):
+        super().__init__(parent)
+        self.config = config
+        if "smart_home_devices" not in self.config:
+            self.config["smart_home_devices"] = {}
+        if "smart_home" not in self.config:
+            self.config["smart_home"] = {"hue_bridge_ip": "", "smartthings_token": ""}
+            
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(24, 16, 24, 16)
+        lay.setSpacing(16)
+
+        lay.addWidget(make_header("💡 Smart Home", "Configure and control your Wi-Fi appliances"))
+
+        card = BaseCard(radius=14)
+        c_lay = QVBoxLayout(card)
+        c_lay.setContentsMargins(18, 14, 18, 14)
+        c_lay.setSpacing(14)
+
+        lbl = QLabel("Add New Device")
+        lbl.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        lbl.setStyleSheet(f"color: {C_TEXT};")
+        c_lay.addWidget(lbl)
+
+        form_lay = QGridLayout()
+        form_lay.setSpacing(10)
+        
+        def mk_lbl(text):
+            l = QLabel(text)
+            l.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+            l.setStyleSheet(f"color: {C_SUBTEXT};")
+            return l
+
+        def mk_edit(text=""):
+            e = QLineEdit(text)
+            e.setFont(QFont("Segoe UI", 10))
+            e.setFixedHeight(34)
+            e.setStyleSheet(f"QLineEdit {{ background: rgba(10, 18, 50, 180); color: {C_TEXT}; border: 1px solid rgba(61, 142, 248, 0.4); border-radius: 8px; padding: 0 10px; }}")
+            return e
+
+        self.edit_dev_name = mk_edit()
+        
+        self.combo_brand = QComboBox()
+        self.combo_brand.addItems(["Tuya / Smart Life", "TP-Link Kasa", "Philips Hue", "Samsung SmartThings"])
+        self.combo_brand.setStyleSheet(f"QComboBox {{ background: rgba(10, 18, 50, 180); color: {C_TEXT}; border: 1px solid rgba(61, 142, 248, 0.4); border-radius: 8px; padding: 5px; }}")
+        
+        self.edit_dev_ip = mk_edit()
+        self.edit_dev_id = mk_edit()
+        self.edit_dev_key = mk_edit()
+
+        form_lay.addWidget(mk_lbl("Device Name (e.g. Office Light):"), 0, 0)
+        form_lay.addWidget(self.edit_dev_name, 0, 1)
+        
+        form_lay.addWidget(mk_lbl("Brand:"), 1, 0)
+        form_lay.addWidget(self.combo_brand, 1, 1)
+
+        form_lay.addWidget(mk_lbl("IP Address (if applicable):"), 2, 0)
+        form_lay.addWidget(self.edit_dev_ip, 2, 1)
+
+        form_lay.addWidget(mk_lbl("Device ID (Tuya/Samsung):"), 3, 0)
+        form_lay.addWidget(self.edit_dev_id, 3, 1)
+        
+        form_lay.addWidget(mk_lbl("Local Key (Tuya only):"), 4, 0)
+        form_lay.addWidget(self.edit_dev_key, 4, 1)
+
+        c_lay.addLayout(form_lay)
+
+        btn_row = QHBoxLayout()
+        add_btn = QPushButton("➕  Add Device")
+        add_btn.setFixedHeight(40)
+        add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_btn.setStyleSheet(f"QPushButton {{ background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {C_BLUE}, stop:1 #1230a0); color: white; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; }} QPushButton:hover {{ background: {C_CYAN}; }}")
+        add_btn.clicked.connect(self._add_device)
+        btn_row.addWidget(add_btn)
+        btn_row.addStretch()
+        c_lay.addLayout(btn_row)
+        
+        lay.addWidget(card)
+
+        # Device List
+        self.dev_list_lbl = QLabel(f"Configured Devices ({len(self.config['smart_home_devices'])})")
+        self.dev_list_lbl.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        self.dev_list_lbl.setStyleSheet(f"color: {C_TEXT}; margin-top: 10px;")
+        lay.addWidget(self.dev_list_lbl)
+
+        self.list_area = QScrollArea()
+        self.list_area.setWidgetResizable(True)
+        self.list_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        
+        self.list_widget = QWidget()
+        self.list_widget.setStyleSheet("background: transparent;")
+        self.list_lay = QVBoxLayout(self.list_widget)
+        self.list_lay.setContentsMargins(0, 0, 0, 0)
+        self.list_lay.setSpacing(10)
+        self.list_area.setWidget(self.list_widget)
+        lay.addWidget(self.list_area)
+        
+        self._refresh_list()
+
+    def _refresh_list(self):
+        # Clear existing
+        while self.list_lay.count():
+            item = self.list_lay.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+                
+        devices = self.config.get("smart_home_devices", {})
+        self.dev_list_lbl.setText(f"Configured Devices ({len(devices)})")
+        
+        for name, details in devices.items():
+            card = BaseCard(radius=8)
+            l = QHBoxLayout(card)
+            l.setContentsMargins(15, 10, 15, 10)
+            
+            lbl = QLabel(f"<b>{name.title()}</b> ({details.get('brand', 'unknown')})")
+            lbl.setStyleSheet(f"color: {C_TEXT}; font-size: 14px;")
+            l.addWidget(lbl)
+            
+            l.addStretch()
+            
+            del_btn = QPushButton("🗑️ Remove")
+            del_btn.setStyleSheet(f"QPushButton {{ background: #aa2222; color: white; border-radius: 5px; padding: 5px 10px; }} QPushButton:hover {{ background: #ff4444; }}")
+            del_btn.clicked.connect(lambda _, n=name: self._remove_device(n))
+            l.addWidget(del_btn)
+            
+            self.list_lay.addWidget(card)
+            
+        self.list_lay.addStretch()
+
+    def _add_device(self):
+        name = self.edit_dev_name.text().strip().lower()
+        if not name:
+            self.command_sent.emit("Please enter a device name.")
+            return
+            
+        brand_raw = self.combo_brand.currentText()
+        if "Tuya" in brand_raw: brand = "tuya"
+        elif "Kasa" in brand_raw: brand = "kasa"
+        elif "Hue" in brand_raw: brand = "hue"
+        else: brand = "samsung"
+        
+        dev = {"brand": brand}
+        
+        ip = self.edit_dev_ip.text().strip()
+        dev_id = self.edit_dev_id.text().strip()
+        key = self.edit_dev_key.text().strip()
+        
+        if ip: dev["ip"] = ip
+        if dev_id: dev["device_id"] = dev_id
+        if key: dev["local_key"] = key
+        
+        self.config["smart_home_devices"][name] = dev
+        self._save_and_reload()
+        
+        self.edit_dev_name.clear()
+        self.edit_dev_ip.clear()
+        self.edit_dev_id.clear()
+        self.edit_dev_key.clear()
+        
+        self._refresh_list()
+        self.command_sent.emit(f"Added device: {name}")
+
+    def _remove_device(self, name):
+        if name in self.config.get("smart_home_devices", {}):
+            del self.config["smart_home_devices"][name]
+            self._save_and_reload()
+            self._refresh_list()
+            self.command_sent.emit(f"Removed device: {name}")
+            
+    def _save_and_reload(self):
+        import json, os
+        try:
+            with open(os.path.join(os.path.dirname(__file__), "config.json"), "w", encoding="utf-8") as f:
+                json.dump(self.config, f, indent=4)
+        except Exception as e:
+            self.command_sent.emit(f"Failed to save devices: {e}")
 

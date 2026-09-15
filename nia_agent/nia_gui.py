@@ -28,7 +28,8 @@ from PyQt6.QtGui import (
 from config_manager import load_config
 from gui_views import (
     ChatView, AppsView, WebView, SocialView, FilesView,
-    MediaView, AutomationView, MemoryView, SettingsView
+    MediaView, AutomationView, MemoryView, SettingsView,
+    SmartHomeView
 )
 from whatsapp_manager import WhatsAppManager
 from voice_listener import VoiceListenerThread
@@ -546,6 +547,7 @@ NAV_ITEMS = [
     ("⚡", "Automation"),
     ("🧠", "Learning & Memory"),
     ("⚙", "Settings"),
+    ("💡", "Smart Home"),
 ]
 
 class Sidebar(QWidget):
@@ -1787,6 +1789,10 @@ class NiaMainWindow(QMainWindow):
         self.settings_view.command_sent.connect(self._on_command)
         self.stack.addWidget(self.settings_view)
 
+        self.smart_home_view = SmartHomeView(self.config)
+        self.smart_home_view.command_sent.connect(self._on_command)
+        self.stack.addWidget(self.smart_home_view)
+
         self.view_map = {
             "Home": self.home_view,
             "Chat": self.chat_view,
@@ -1798,6 +1804,7 @@ class NiaMainWindow(QMainWindow):
             "Automation": self.auto_view,
             "Learning & Memory": self.memory_view,
             "Settings": self.settings_view,
+            "Smart Home": self.smart_home_view,
         }
 
         body.addWidget(self.stack, 1)

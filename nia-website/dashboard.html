@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - NIA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030409;
+            color: #ffffff;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .space-font { font-family: 'Space Grotesk', sans-serif; }
+        .bg-glass {
+            background: rgba(15, 20, 40, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(61, 142, 248, 0.2);
+        }
+        .sidebar {
+            border-right: 1px solid rgba(61, 142, 248, 0.15);
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(61, 142, 248, 0.1);
+            color: #3d8ef8;
+            border-right: 2px solid #3d8ef8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 sidebar bg-[#08091a] flex flex-col h-screen sticky top-0">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold space-font tracking-tight text-white flex items-center gap-2">
+                <i class="fas fa-brain text-blue-500"></i> NIA
+            </h2>
+            <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest">User Portal</p>
+        </div>
+
+        <nav class="flex-1 mt-6">
+            <a href="#" class="nav-item active flex items-center gap-3 px-6 py-4 text-gray-300 transition cursor-pointer">
+                <i class="fas fa-user-circle w-5"></i> Profile
+            </a>
+            <a href="index.html" class="nav-item flex items-center gap-3 px-6 py-4 text-gray-300 transition cursor-pointer">
+                <i class="fas fa-home w-5"></i> Back to Website
+            </a>
+        </nav>
+
+        <div class="p-6">
+            <button id="logout-btn" class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded transition flex items-center justify-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10 relative">
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px]"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto relative z-10">
+            <header class="mb-10">
+                <h1 class="text-3xl font-bold space-font">Welcome back, <span id="user-name" class="text-blue-400">User</span></h1>
+                <p class="text-gray-400 mt-2" id="user-email">loading...</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Active Licenses -->
+                <section class="bg-glass rounded-xl p-6 shadow-lg shadow-black/50">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 border-b border-gray-700 pb-3">
+                        <i class="fas fa-key text-yellow-400"></i> Active Licenses
+                    </h3>
+                    <div id="active-licenses" class="min-h-[100px]">
+                        <p class="text-gray-400 text-sm animate-pulse">Loading licenses...</p>
+                    </div>
+                </section>
+
+                <!-- Purchase History -->
+                <section class="bg-glass rounded-xl p-6 shadow-lg shadow-black/50">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 border-b border-gray-700 pb-3">
+                        <i class="fas fa-receipt text-green-400"></i> Purchase History
+                    </h3>
+                    <div id="purchase-history" class="min-h-[100px]">
+                        <p class="text-gray-400 text-sm animate-pulse">Loading history...</p>
+                    </div>
+                </section>
+            </div>
+            
+            <section class="mt-8 bg-glass rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-4">Account Settings</h3>
+                <p class="text-gray-400 text-sm mb-4">Manage your billing information and connected accounts here.</p>
+                <button class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded transition text-sm">
+                    Manage Billing (Stripe Portal)
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="assets/js/firebase-config.js"></script>
+    <script type="module" src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/dashboard.js"></script>
+</body>
+</html>
